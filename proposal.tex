@@ -1,0 +1,493 @@
+% =========================================================
+% IEEE Conference Research Proposal
+% A Machine Learning Framework for Pitting Corrosion Detection
+% in Offshore Infrastructure Using Fused RGB, Thermal, and LiDAR Imagery
+%
+% Author: Victor — MSc by Research, Universiti Teknologi PETRONAS
+%
+% To compile: pdflatex proposal.tex  (run twice for cross-references)
+%
+% References: replace \bibitem placeholders with your actual sources.
+% To switch to BibTeX, replace \begin{thebibliography}...\end{thebibliography}
+% with \bibliographystyle{IEEEtran} and \bibliography{references}
+% =========================================================
+
+\documentclass[conference]{IEEEtran} 
+\IEEEoverridecommandlockouts
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+
+\begin{document}
+
+\title{A Machine Learning Framework for Pitting Corrosion Detection in Offshore
+Infrastructure Using Fused RGB, Thermal, and LiDAR Imagery}
+
+\author{
+    \IEEEauthorblockN{Victor}
+    \IEEEauthorblockA{
+        \textit{Department of Electrical and Electronic Engineering}\\
+        \textit{Universiti Teknologi PETRONAS (UTP)}\\
+        Seri Iskandar, Perak, Malaysia
+    }
+}
+
+\maketitle
+
+% ---------------------------------------------------------
+\begin{abstract}
+Pitting corrosion is one of the most hazardous and economically
+costly forms of material degradation affecting offshore oil and gas
+infrastructure, including fixed platforms, subsea pipelines, and
+floating production systems. Conventional automated inspection
+approaches rely predominantly on single-modality sensing—visible-spectrum
+(RGB) imagery, thermal infrared, or structured-light scanning in
+isolation—which constrains detection reliability under the variable
+illumination, surface fouling, and harsh environmental conditions
+characteristic of offshore deployments. This paper proposes a
+multimodal machine learning (ML) framework that fuses RGB, thermal
+infrared, and LiDAR point-cloud data for the automated detection
+and localisation of pitting corrosion on offshore structures. By
+exploiting the complementary strengths of each modality—colour and
+texture discrimination from RGB, subsurface thermal anomaly signatures
+from infrared, and high-fidelity geometric surface deviation from
+LiDAR—the proposed hybrid feature-level fusion architecture aims
+to achieve detection accuracy and environmental robustness that no
+single-modality approach can deliver alone. The framework is to be
+evaluated against single- and dual-modality baselines using
+standardised metrics including intersection over union (IoU),
+precision, recall, and F1-score. This research addresses a
+documented gap in the literature: no existing study has unified
+all three sensor modalities specifically for pitting corrosion
+detection in offshore environments. Expected contributions include
+a novel trimodal fusion framework, a benchmark multimodal corrosion
+dataset, and quantified accuracy improvements, with direct implications
+for structural safety and inspection efficiency in the offshore
+energy sector.
+\end{abstract}
+
+\begin{IEEEkeywords}
+pitting corrosion, multimodal fusion, LiDAR, thermal infrared imaging,
+convolutional neural networks, offshore structural health monitoring
+\end{IEEEkeywords}
+
+% ---------------------------------------------------------
+\section{Introduction}
+
+Offshore oil and gas infrastructure operates in one of the most
+corrosive environments on Earth. Sustained exposure to marine aerosols,
+saltwater immersion, cyclic thermal loading, and biological fouling
+accelerates corrosion processes that, if undetected, can precipitate
+catastrophic structural failure, environmental contamination, and
+substantial economic loss \cite{ref1}. Among the various corrosion
+morphologies, pitting corrosion is particularly insidious: its
+localised, subsurface-nucleating character means that significant
+material loss can develop with minimal macroscopic surface signature
+until the corrosion penetrates through the wall of a pipe or plate
+\cite{ref2}.
+
+Current offshore inspection regimes combine periodic manual visual
+inspection with single-sensor non-destructive testing (NDT) techniques.
+Whilst RGB camera systems have gained traction for automated surface
+inspection due to their low deployment cost, they degrade markedly
+under poor illumination, surface contamination, and adverse weather
+\cite{ref3}. Thermal infrared (IR) imaging can reveal subsurface
+thermal anomalies indicative of material thinning but is limited in
+spatial resolution and prone to false positives from environmentally
+induced thermal gradients \cite{ref4}. LiDAR sensors provide dense
+three-dimensional point clouds encoding surface topology with
+sub-millimetre precision, enabling pit detection as geometric
+depressions, yet are susceptible to noise from water films, maritime
+aerosols, and specular reflectance on metallic substrates \cite{ref5}.
+
+Multimodal sensor fusion—exploiting complementary sensing physics to
+improve system-level performance—is well established in autonomous
+driving, aerial remote sensing, and medical imaging. However, its
+systematic application to pitting corrosion detection on offshore
+structures remains largely unexplored. This gap represents both a
+scientific opportunity and a practical imperative given the industry's
+need for more reliable, autonomous inspection solutions.
+
+This research proposes a multimodal ML framework fusing RGB, thermal,
+and LiDAR data for pitting corrosion detection on offshore
+infrastructure. The specific research objectives are:
+
+\begin{enumerate}
+    \item To design a hybrid feature-level fusion architecture
+    integrating RGB, thermal infrared, and LiDAR modalities for
+    pitting corrosion detection on offshore structural steel.
+    \item To curate or synthesise a co-registered multimodal corrosion
+    dataset representative of offshore environmental conditions,
+    including surface fouling, variable illumination, and geometric
+    irregularity.
+    \item To evaluate the proposed framework against single-modality
+    (RGB-only, IR-only, LiDAR-only) and dual-modality baselines
+    using standardised pixel-level and detection-level metrics.
+    \item To assess the robustness and generalisability of the
+    framework under controlled simulations of realistic offshore
+    degradation scenarios.
+\end{enumerate}
+
+The remainder of this paper is organised as follows:
+Section~\ref{sec:related} reviews related work.
+Section~\ref{sec:method} presents the proposed methodology.
+Section~\ref{sec:outcomes} discusses expected outcomes.
+Section~\ref{sec:timeline} outlines the research timeline.
+Section~\ref{sec:conclusion} concludes the paper.
+
+% ---------------------------------------------------------
+\section{Related Work}
+\label{sec:related}
+
+\subsection{RGB-Based Corrosion Detection}
+
+Visible-spectrum imaging is the most widely studied modality for
+automated corrosion detection. Early work employed handcrafted
+colour and texture features \cite{ref6}, whilst more recent studies
+have leveraged deep CNNs, including YOLO-based detectors and
+encoder-decoder segmentation networks, achieving F1-scores exceeding
+0.90 on curated laboratory benchmarks \cite{ref7}. Transfer learning
+from large-scale visual datasets has partially improved generalisation,
+but RGB-based models remain vulnerable to illumination variation,
+specular reflectance, and surface contamination—all of which are
+endemic in offshore environments \cite{ref8}. Critically, RGB imaging
+provides no information about subsurface material loss or surface
+topography, limiting its diagnostic capability for pitting corrosion.
+
+\subsection{Thermal Infrared-Based Detection}
+
+Infrared thermography is an established NDT technique in which
+subsurface defects—including corrosion-induced wall thinning—are
+revealed as thermal anomalies under passive or active thermal
+excitation \cite{ref9}. ML methods applied to thermal imagery,
+including SVMs, CNNs, and U-Net segmentation architectures, have
+demonstrated feasibility for corrosion characterisation \cite{ref10}.
+Thermal imaging offers reduced sensitivity to ambient lighting
+relative to RGB, enabling inspection in low-visibility or
+night-time conditions. However, its spatial resolution is generally
+inferior to optical cameras, and discriminating between
+corrosion-induced and environmentally induced thermal gradients
+remains an open problem in offshore deployments \cite{ref11}.
+
+\subsection{LiDAR-Based Structural Inspection}
+
+LiDAR sensors generate dense 3D point clouds with high geometric
+fidelity, enabling pitting to be detected as localised surface
+depressions \cite{ref12}. Deep learning approaches for point cloud
+processing—including PointNet, PointNet++, and sparse 3D
+CNNs—have been applied to structural inspection with promising
+results \cite{ref13}. In marine and offshore contexts, LiDAR has
+been used for hull inspection and pipeline monitoring, demonstrating
+capability to resolve geometric features invisible to optical sensors
+\cite{ref14}. Known challenges include sensitivity to water film,
+maritime aerosol scatter, and specular reflectance from metallic
+surfaces, all of which introduce noise in offshore point cloud
+acquisitions.
+
+\subsection{Multimodal Fusion Approaches and the Research Gap}
+
+Multimodal fusion has consistently outperformed single-modality
+baselines in domains including autonomous driving \cite{ref15},
+aerial remote sensing \cite{ref16}, and medical image analysis
+\cite{ref17}. Within structural inspection, limited studies have
+fused RGB with thermal data for surface defect detection \cite{ref18}
+or RGB with LiDAR for damage assessment \cite{ref19}. To the best
+of the author's knowledge, no existing study has proposed a unified
+framework fusing all three modalities—RGB, thermal infrared, and
+LiDAR—specifically for pitting corrosion detection on offshore
+infrastructure. This gap motivates the present research.
+
+% ---------------------------------------------------------
+\section{Proposed Methodology}
+\label{sec:method}
+
+\subsection{Research Design}
+
+This study follows a quantitative experimental design. The primary
+instrument is the proposed multimodal ML framework, evaluated through
+controlled experiments on a purpose-assembled dataset. Ablation
+studies isolating each modality's contribution, combined with
+baseline comparisons, provide the empirical foundation for evaluating
+the fusion approach.
+
+\subsection{Data Acquisition and Preparation}
+
+A multimodal dataset will be compiled from three complementary sources:
+
+\begin{enumerate}
+    \item \textbf{Public benchmarks:} Existing corrosion and surface
+    defect datasets (e.g., CODEBRIM \cite{ref20}; NEU surface defect
+    database \cite{ref21}) will be used for pre-training and transfer
+    learning initialisation. Where paired thermal or 3D scan data are
+    available, they will be incorporated.
+    \item \textbf{Synthetic data generation:} Pitting textures, thermal
+    anomaly maps, and point-cloud surface deformations will be
+    synthesised using physically-based rendering pipelines and
+    corrosion simulation models. Synthetic samples extend training
+    coverage and allow controlled variation of pit depth, density,
+    and environmental conditions.
+    \item \textbf{Laboratory specimen imaging:} Corroded steel coupons
+    representative of offshore structural grades will be imaged
+    using an RGB camera, an uncooled microbolometer thermal camera,
+    and a structured-light or time-of-flight LiDAR sensor under
+    controlled conditions. Specimens will span pitted and non-pitted
+    cases to support binary and severity-graded labelling.
+\end{enumerate}
+
+All acquisitions will be spatially co-registered to a common
+reference frame via target-based multi-sensor calibration.
+Ground-truth annotations will mark pit locations, pit severity
+categories (shallow, moderate, severe), and corrosion-free
+background regions, produced through a combination of automated
+thresholding and manual expert labelling.
+
+\subsection{Fusion Architecture}
+
+The proposed framework adopts a \textbf{hybrid fusion strategy},
+integrating feature-level cross-modal fusion with a late-stage
+decision refinement mechanism, as illustrated in
+Fig.~\ref{fig:framework}. Three parallel encoder branches process
+the respective modalities:
+
+\begin{itemize}
+    \item \textbf{RGB branch:} A pre-trained CNN backbone
+    (e.g., ResNet-50 or EfficientNet-B4) extracts hierarchical
+    visual and texture features.
+    \item \textbf{Thermal branch:} An analogous CNN backbone
+    processes single-channel thermal images, extracting
+    thermal gradient and anomaly maps.
+    \item \textbf{LiDAR branch:} A PointNet++ or sparse 3D CNN
+    encoder processes voxelised or range-projected LiDAR data,
+    extracting surface curvature and depth deviation features.
+\end{itemize}
+
+Intermediate feature maps from the three branches are concatenated
+at a fusion layer and passed through a shared decoder
+(Feature Pyramid Network or U-Net-style architecture) for
+pixel-level corrosion segmentation. A cross-modal attention
+module will be investigated to learn adaptive, context-dependent
+fusion weights, enabling the model to dynamically prioritise
+modalities based on local signal quality.
+
+\begin{figure}[htbp]
+    \centering
+    \fbox{%
+        \parbox{0.92\linewidth}{%
+            \centering\vspace{2.8cm}%
+            \textit{[Framework Pipeline Diagram --- to be inserted]}%
+            \vspace{2.8cm}%
+        }%
+    }
+    \caption{Proposed trimodal fusion pipeline for pitting corrosion
+    detection. Parallel CNN/PointNet++ encoders process RGB, thermal
+    infrared, and LiDAR inputs. Features are fused via cross-modal
+    attention and decoded to produce a pixel-level corrosion
+    segmentation map with pit severity classification.}
+    \label{fig:framework}
+\end{figure}
+
+\subsection{Evaluation Plan}
+
+Model performance will be assessed using the following metrics:
+
+\begin{itemize}
+    \item \textit{Pixel-level:} Intersection over Union (IoU),
+    Dice coefficient.
+    \item \textit{Detection-level:} Precision, Recall, F1-score.
+    \item \textit{Localisation:} Mean Average Precision (mAP) at
+    IoU thresholds of 0.50 and 0.75.
+\end{itemize}
+
+Ablation experiments will systematically remove one or two modalities
+to isolate each sensor's contribution to overall performance.
+Robustness evaluation will introduce controlled degradations—simulated
+sensor noise, illumination variation, partial surface occlusion—to
+assess performance under realistic offshore conditions. Statistical
+significance of performance differences between models will be
+assessed using paired $t$-tests or Wilcoxon signed-rank tests
+across cross-validation folds.
+
+% ---------------------------------------------------------
+\section{Expected Outcomes and Significance}
+\label{sec:outcomes}
+
+This research is expected to deliver the following contributions:
+
+\begin{enumerate}
+    \item \textbf{Novel trimodal fusion framework:} A first-of-its-kind
+    ML pipeline unifying RGB, thermal, and LiDAR data for offshore
+    pitting corrosion detection, with a modular architecture
+    extensible to other structural inspection domains.
+    \item \textbf{Benchmark experimental comparison:} Quantified
+    performance comparisons between the proposed framework and
+    single- and dual-modality baselines, providing the first
+    empirical evidence for the value of trimodal fusion in this
+    specific application.
+    \item \textbf{Multimodal corrosion dataset:} A curated, co-registered
+    collection of RGB, thermal, and LiDAR observations of corroded
+    steel specimens, intended for public release to address current
+    data scarcity in the field.
+    \item \textbf{Practical deployment guidance:} Analysis of
+    trade-offs between detection performance, sensor hardware cost,
+    and computational overhead, informing feasibility assessments
+    for real-world offshore inspection system design.
+\end{enumerate}
+
+Offshore structural inspection currently costs the industry several
+billion US dollars annually, and undetected corrosion remains a
+primary cause of structural incidents \cite{ref22}. An automated,
+high-accuracy multimodal inspection framework could reduce reliance
+on costly and hazardous manual inspection, support higher inspection
+cadence, and provide earlier warning of critical corrosion
+progression—directly advancing both structural safety and operational
+efficiency in the offshore oil and gas sector.
+
+% ---------------------------------------------------------
+\section{Research Timeline}
+\label{sec:timeline}
+
+The proposed research spans approximately 24 months from
+May~2026 to April~2028, organised into six sequential phases
+as summarised in Table~\ref{tab:timeline}. Phases may overlap
+where parallel tasks are feasible. Intermediate publication of
+results is planned during Phase~5, targeting IEEE conferences or
+journals in the areas of non-destructive testing, structural health
+monitoring, or computer vision applied to engineering.
+
+\begin{table}[htbp]
+\caption{Research Timeline (May 2026 -- April 2028)}
+\label{tab:timeline}
+\centering
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{p{0.52\linewidth} p{0.38\linewidth}}
+\toprule
+\textbf{Phase} & \textbf{Period} \\
+\midrule
+1. Literature Review \& Review Paper    & May -- Jul 2026   \\
+2. Research Proposal                    & Jul -- Sep 2026   \\
+3. Programming \& Tooling Setup         & Sep -- Nov 2026   \\
+4. Dataset Acquisition \& Preprocessing & Nov 2026 -- Mar 2027 \\
+5. ML Model Development \& Evaluation  & Mar -- Dec 2027   \\
+6. Thesis Writing \& Dissemination     & Jan -- Apr 2028   \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ---------------------------------------------------------
+\section{Conclusion}
+\label{sec:conclusion}
+
+This paper has presented a research proposal for a multimodal ML
+framework for pitting corrosion detection in offshore infrastructure,
+integrating RGB, thermal infrared, and LiDAR sensor data through a
+hybrid feature-level fusion architecture. The proposed work addresses
+a documented gap in the literature—no prior study has unified all
+three modalities for this application—and is expected to deliver a
+novel, validated detection framework, a multimodal benchmark dataset,
+and practical guidance for offshore structural health monitoring
+system design. Successful completion of this research has the
+potential to meaningfully advance inspection safety, reduce operational
+costs, and improve the early detection of critical corrosion events
+in the offshore oil and gas industry.
+
+% ---------------------------------------------------------
+% REFERENCES
+% Replace each \bibitem with your actual source details.
+% =========================================================
+\begin{thebibliography}{99}
+
+\bibitem{ref1}
+[PLACEHOLDER] Author(s), ``Title,''
+\textit{Journal/Conference}, vol.~X, no.~Y, pp.~ZZ--ZZ, Year.
+
+\bibitem{ref2}
+[PLACEHOLDER] Author(s), ``Title,''
+\textit{Journal/Conference}, vol.~X, no.~Y, pp.~ZZ--ZZ, Year.
+
+\bibitem{ref3}
+[PLACEHOLDER] Author(s), ``Title,''
+\textit{Journal/Conference}, vol.~X, no.~Y, pp.~ZZ--ZZ, Year.
+
+\bibitem{ref4}
+[PLACEHOLDER] Author(s), ``Title,''
+\textit{Journal/Conference}, vol.~X, no.~Y, pp.~ZZ--ZZ, Year.
+
+\bibitem{ref5}
+[PLACEHOLDER] Author(s), ``Title,''
+\textit{Journal/Conference}, vol.~X, no.~Y, pp.~ZZ--ZZ, Year.
+
+\bibitem{ref6}
+[PLACEHOLDER] Author(s), ``Title,''
+\textit{Journal/Conference}, vol.~X, no.~Y, pp.~ZZ--ZZ, Year.
+
+\bibitem{ref7}
+[PLACEHOLDER] Author(s), ``Title,''
+\textit{Journal/Conference}, vol.~X, no.~Y, pp.~ZZ--ZZ, Year.
+
+\bibitem{ref8}
+[PLACEHOLDER] Author(s), ``Title,''
+\textit{Journal/Conference}, vol.~X, no.~Y, pp.~ZZ--ZZ, Year.
+
+\bibitem{ref9}
+[PLACEHOLDER] Author(s), ``Title,''
+\textit{Journal/Conference}, vol.~X, no.~Y, pp.~ZZ--ZZ, Year.
+
+\bibitem{ref10}
+[PLACEHOLDER] Author(s), ``Title,''
+\textit{Journal/Conference}, vol.~X, no.~Y, pp.~ZZ--ZZ, Year.
+
+\bibitem{ref11}
+[PLACEHOLDER] Author(s), ``Title,''
+\textit{Journal/Conference}, vol.~X, no.~Y, pp.~ZZ--ZZ, Year.
+
+\bibitem{ref12}
+[PLACEHOLDER] Author(s), ``Title,''
+\textit{Journal/Conference}, vol.~X, no.~Y, pp.~ZZ--ZZ, Year.
+
+\bibitem{ref13}
+[PLACEHOLDER] Author(s), ``Title,''
+\textit{Journal/Conference}, vol.~X, no.~Y, pp.~ZZ--ZZ, Year.
+
+\bibitem{ref14}
+[PLACEHOLDER] Author(s), ``Title,''
+\textit{Journal/Conference}, vol.~X, no.~Y, pp.~ZZ--ZZ, Year.
+
+\bibitem{ref15}
+[PLACEHOLDER] Author(s), ``Title,''
+\textit{Journal/Conference}, vol.~X, no.~Y, pp.~ZZ--ZZ, Year.
+
+\bibitem{ref16}
+[PLACEHOLDER] Author(s), ``Title,''
+\textit{Journal/Conference}, vol.~X, no.~Y, pp.~ZZ--ZZ, Year.
+
+\bibitem{ref17}
+[PLACEHOLDER] Author(s), ``Title,''
+\textit{Journal/Conference}, vol.~X, no.~Y, pp.~ZZ--ZZ, Year.
+
+\bibitem{ref18}
+[PLACEHOLDER] Author(s), ``Title,''
+\textit{Journal/Conference}, vol.~X, no.~Y, pp.~ZZ--ZZ, Year.
+
+\bibitem{ref19}
+[PLACEHOLDER] Author(s), ``Title,''
+\textit{Journal/Conference}, vol.~X, no.~Y, pp.~ZZ--ZZ, Year.
+
+\bibitem{ref20}
+[PLACEHOLDER] Author(s), ``Title,''
+\textit{Journal/Conference}, vol.~X, no.~Y, pp.~ZZ--ZZ, Year.
+
+\bibitem{ref21}
+[PLACEHOLDER] Author(s), ``Title,''
+\textit{Journal/Conference}, vol.~X, no.~Y, pp.~ZZ--ZZ, Year.
+
+\bibitem{ref22}
+[PLACEHOLDER] Author(s), ``Title,''
+\textit{Journal/Conference}, vol.~X, no.~Y, pp.~ZZ--ZZ, Year.
+
+\end{thebibliography}
+
+\end{document}
