@@ -1,0 +1,7 @@
+{
+  "ltex.language": "en-GB",
+  "ltex.disabledRules": {
+    "en-GB": ["OXFORD_SPELLING_Z_NOT_S"]
+  },
+  "cSpell.words": ["profilometry"]
+}
