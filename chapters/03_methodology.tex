@@ -1,0 +1,147 @@
+\chapter[METHODOLOGY]{Methodology}
+\label{ch:methodology}
+
+\section{Research Design}
+\label{sec:research-design}
+% -----------------------------------------------------------------
+% Overall approach and why it fits the questions. A short paragraph
+% plus an overall workflow figure is usually enough here.
+% -----------------------------------------------------------------
+
+\note{Research design to be drafted}
+
+% \begin{figure}[htbp]
+%   \centering
+%   \includegraphics[width=\textwidth]{workflow.pdf}
+%   \caption{Overall research workflow.}
+%   \label{fig:workflow}
+% \end{figure}
+
+
+\section{Project Activities}
+\label{sec:project-activities}
+% -----------------------------------------------------------------
+% Walk through the pipeline, one subsection per stage. Each stage
+% should name the tools and state what "done" looks like.
+% -----------------------------------------------------------------
+
+\subsection{Data Acquisition}
+% Sensor selection, rig, sample surfaces, controlled vs field data.
+% Say honestly whether data is collected or sourced -- the datasets
+% section of Chapter 2 makes this the biggest risk in the project.
+\note{Data acquisition to be drafted}
+
+\subsection{Calibration and Registration}
+% Targetless extrinsic calibration; a printed chessboard is
+% invisible to thermal, so state the calibration target used.
+\note{Calibration and registration to be drafted}
+
+\subsection{Preprocessing and Annotation}
+\note{Preprocessing and annotation to be drafted}
+
+\subsection{Model Development}
+% Baseline (RGB only), then the fused model.
+\note{Model development to be drafted}
+
+\subsection{Ablation Protocol}
+% RGB -> RGB + thermal -> full trimodal, with the metrics fixed in
+% advance. This is the methodological contribution; give it space
+% and state the decision rule for "the modality earned its place"
+% BEFORE any results exist.
+\note{Ablation protocol to be drafted}
+
+\subsection{Validation and Benchmarking}
+\note{Validation and benchmarking to be drafted}
+
+
+\section{Objectives and Key Milestones}
+\label{sec:milestones}
+% -----------------------------------------------------------------
+% The Word template carries a SmartArt diagram mapping three
+% objectives onto five milestones. The TikZ figure below reproduces
+% that mapping -- edit the labels once the objectives are settled.
+% -----------------------------------------------------------------
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  obj/.style={draw,thick,rounded corners,align=center,
+              minimum width=3.4cm,minimum height=1.15cm,
+              fill=blue!8,inner sep=3pt},
+  ms/.style={draw,thick,rounded corners,align=center,
+             minimum width=5.0cm,minimum height=0.9cm,
+             fill=orange!12,inner sep=3pt},
+  arr/.style={-{Latex[length=2mm]},thick,gray!65}
+]
+% --- milestones: an evenly spaced ladder on the right ---
+\node[ms] (m1) at (0,0) {\textbf{Milestone 1} \footnotesize \note{label}};
+\node[ms,below=0.32cm of m1] (m2) {\textbf{Milestone 2} \footnotesize \note{label}};
+\node[ms,below=0.32cm of m2] (m3) {\textbf{Milestone 3} \footnotesize \note{label}};
+\node[ms,below=0.32cm of m3] (m4) {\textbf{Milestone 4} \footnotesize \note{label}};
+\node[ms,below=0.32cm of m4] (m5) {\textbf{Milestone 5} \footnotesize \note{label}};
+
+% --- objectives: centred against the milestones each one owns ---
+\node[obj] (o1) at ($(m1.west)!0.5!(m2.west) + (-2.5cm,0)$)
+  {\textbf{Objective 1}\\[-2pt]\footnotesize \note{short label}};
+\node[obj] (o2) at ($(m3.west) + (-2.5cm,0)$)
+  {\textbf{Objective 2}\\[-2pt]\footnotesize \note{short label}};
+\node[obj] (o3) at ($(m4.west)!0.5!(m5.west) + (-2.5cm,0)$)
+  {\textbf{Objective 3}\\[-2pt]\footnotesize \note{short label}};
+
+\draw[arr] (o1.east) -- (m1.west);
+\draw[arr] (o1.east) -- (m2.west);
+\draw[arr] (o2.east) -- (m3.west);
+\draw[arr] (o3.east) -- (m4.west);
+\draw[arr] (o3.east) -- (m5.west);
+\end{tikzpicture}
+\caption{Mapping of research objectives to key milestones.}
+\label{fig:objectives-milestones}
+\end{figure}
+
+\begin{table}[htbp]
+\centering
+\caption{Key milestones and expected completion.}
+\label{tab:milestones}
+\begin{tabularx}{\textwidth}{@{}l X l@{}}
+\toprule
+\textbf{Milestone} & \textbf{Description} & \textbf{Target} \\
+\midrule
+M1 & \note{description} & \note{date} \\
+M2 & \note{description} & \note{date} \\
+M3 & \note{description} & \note{date} \\
+M4 & \note{description} & \note{date} \\
+M5 & \note{description} & \note{date} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+\section{Study Plan}
+\label{sec:study-plan}
+% -----------------------------------------------------------------
+% The Gantt chart, May 2026 - April 2028. Either include the
+% existing PDF as a figure, or redraw it with pgfgantt for a
+% cleaner result. Note that the existing chart still carries the
+% superseded pitting-specific title -- fix that before it goes in.
+% -----------------------------------------------------------------
+
+\note{Gantt chart to be inserted}
+
+% \begin{figure}[htbp]
+%   \centering
+%   \includegraphics[width=\textwidth]{gantt.pdf}
+%   \caption{Study plan, May 2026 to April 2028.}
+%   \label{fig:gantt}
+% \end{figure}
+
+
+\section{Preliminary Results}
+\label{sec:preliminary-results}
+% -----------------------------------------------------------------
+% The template names this section explicitly (3.1 in the original),
+% so it cannot be dropped. Even a small proof of concept -- a
+% baseline RGB detector on a public dataset, or a registration
+% trial on two modalities -- is worth far more here than nothing.
+% -----------------------------------------------------------------
+
+\note{Preliminary results to be drafted}

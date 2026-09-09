@@ -1,0 +1,26 @@
+%  Research Proposal Defence -- Universiti Teknologi PETRONAS
+%  Build:  latexmk -pdf main.tex
+% ===============================================================
+\documentclass[12pt,letterpaper,oneside]{report}
+
+\input{preamble}
+\input{metadata}
+
+\begin{document}
+
+% ---- Front matter (roman numerals) ----
+\pagenumbering{roman}
+\input{frontmatter/cover}
+
+\tableofcontents
+\clearpage
+
+% ---- Body (arabic numerals, restarting at 1) ----
+\pagenumbering{arabic}
+
+\include{chapters/01_introduction}
+\include{chapters/02_literature_review}
+\include{chapters/03_methodology}
+\include{chapters/04_references}
+
+\end{document}

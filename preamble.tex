@@ -1,0 +1,121 @@
+% ---------------------------------------------------------------
+% preamble.tex -- formatting to match the UTP RPD proposal template
+%   Letter paper, 1 in margins, Times New Roman 12 pt, footer page
+%   numbers, chapter headings as "CHAPTER n" over the title.
+% ---------------------------------------------------------------
+
+% ---- Page geometry (matches template: 8.5 x 11 in, 1 in margins) ----
+\usepackage[letterpaper,margin=1in]{geometry}
+
+% ---- Times New Roman substitute for text and maths ----
+\usepackage{mathptmx}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% ---- Line spacing -------------------------------------------------
+% UTP postgraduate submissions are normally 1.5-spaced. The bare
+% template is single-spaced. Switch by swapping the two lines below.
+\usepackage{setspace}
+\onehalfspacing
+% \singlespacing
+
+% ---- Language / typography ---------------------------------------
+\usepackage[english]{babel}
+\usepackage{microtype}
+\usepackage{ragged2e}
+
+% ---- Graphics, colour, tables ------------------------------------
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{rotating}
+\usepackage[font=normalsize,labelfont=bf,justification=centering]{caption}
+\usepackage{subcaption}
+
+% ---- Diagrams ----------------------------------------------------
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,shapes.geometric,calc}
+
+% ---- Maths --------------------------------------------------------
+\usepackage{amsmath}
+\usepackage{amssymb}
+% siunitx gives \SI{50}{\micro\metre} style units. Uncomment on a full
+% TeX Live / MiKTeX install (MiKTeX fetches it automatically).
+%\usepackage{siunitx}
+
+% ---- Lists --------------------------------------------------------
+\usepackage{enumitem}
+\setlist{itemsep=2pt,parsep=0pt,topsep=4pt}
+
+% ---- Headings -----------------------------------------------------
+\usepackage{titlesec}
+
+% Chapter: "CHAPTER 1" on one line, the title in caps beneath it,
+% both centred -- exactly as the Word template lays it out.
+\titleformat{\chapter}[display]
+  {\normalfont\bfseries\centering}
+  {\MakeUppercase{\chaptertitlename}\ \thechapter}
+  {12pt}
+  {\MakeUppercase}
+\titlespacing*{\chapter}{0pt}{0pt}{24pt}
+
+\titleformat{\section}
+  {\normalfont\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+  {\normalfont\itshape}{\thesubsubsection}{1em}{}
+
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{2}
+
+% ---- Table of contents -------------------------------------------
+\usepackage{tocloft}
+% babel resets \contentsname at \begin{document}, so set it late.
+\AtBeginDocument{\renewcommand{\contentsname}{TABLE OF CONTENT}}
+% tocloft renders the title as {\cfttoctitlefont\cfttoctitlename}, where the
+% name arrives via \UseName (i.e. inside \csname...\endcsname), so a trailing
+% \MakeUppercase here breaks the build. \contentsname is already set in caps.
+\renewcommand{\cfttoctitlefont}{\hfill\normalfont\bfseries}
+\renewcommand{\cftaftertoctitle}{\hfill}
+\renewcommand{\cftchapfont}{\bfseries}
+\renewcommand{\cftchappagefont}{\bfseries}
+\setlength{\cftbeforechapskip}{6pt}
+% TOC chapter lines read "CHAPTER 1   INTRODUCTION", as the template does.
+\renewcommand{\cftchappresnum}{CHAPTER\space}
+\setlength{\cftchapnumwidth}{2.7cm}
+
+% ---- Page numbering in the footer --------------------------------
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \fancyfoot[C]{\thepage}%
+  \renewcommand{\headrulewidth}{0pt}%
+}
+
+% ---- Bibliography -------------------------------------------------
+% natbib + bibtex. Numeric, in order of citation (unsrtnat).
+% For author-year instead: swap to plainnat and drop the [numbers] option.
+\usepackage[numbers,sort&compress]{natbib}
+% Chapter 4 is "REFERENCES" as a numbered chapter (a UTP quirk), so the
+% bibliography itself must not print its own heading.
+\renewcommand{\bibsection}{}
+\setlength{\bibsep}{6pt}
+
+% ---- Hyperlinks (load late) --------------------------------------
+\usepackage[hidelinks,breaklinks=true]{hyperref}
+\usepackage[capitalise,noabbrev]{cleveref}
+
+% ---- Drafting helpers --------------------------------------------
+% \note{...} marks something still to be written. Search for "\note"
+% before submitting -- and delete this macro when the draft is done.
+\newcommand{\note}[1]{\textcolor{red}{\textbf{[#1]}}}

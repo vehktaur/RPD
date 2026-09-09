@@ -1,0 +1,12 @@
+{
+  "latex-workshop.latex.outDir": "%DIR%/build",
+  "latex-workshop.latex.recipe.default": "latexmk (pdflatex)",
+  "latex-workshop.latex.autoBuild.run": "onFileChange",
+  "latex-workshop.view.pdf.viewer": "tab",
+  "latex-workshop.latex.autoClean.run": "onBuilt",
+  "editor.wordWrap": "on",
+  "editor.rulers": [80],
+  "[latex]": {
+    "editor.formatOnSave": false
+  }
+}
