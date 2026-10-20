@@ -1,117 +1,178 @@
 \chapter[INTRODUCTION]{Introduction}
 \label{ch:introduction}
 
+% Sources for every figure and claim in this chapter were checked against the
+% cited papers in October 2026. Counts of reviewed studies (33 corrosion-sensing
+% studies, 40 fusion studies) are taken from the literature tables in
+% Chapter~\ref{ch:literature-review}.
+
 \section{Background}
 \label{sec:background}
-% -----------------------------------------------------------------
-% Funnel, roughly 3-5 paragraphs:
-%   1. Corrosion as an industrial and economic problem (asset
-%      integrity, offshore/marine context, cost of failure).
-%   2. How inspection is done now -- manual visual inspection, its
-%      cost, subjectivity and access limitations.
-%   3. Automated vision-based corrosion detection and where it has
-%      got to; note that it is overwhelmingly RGB-only.
-%   4. Why a single modality is physically insufficient: colour and
-%      texture alone confuse corrosion with coating, staining, dirt
-%      and shadow, and say nothing about material loss.
-%   5. Land on: complementary sensing (thermal for subsurface,
-%      LiDAR for geometry) as the direction this work takes.
-% Do NOT argue the gap here -- that is the Problem Statement.
-% -----------------------------------------------------------------
 
-\note{Background to be drafted}
+Corrosion is the deterioration of a metal through electrochemical interaction
+with its environment \citep{Alvani2026}, as the metal returns to a more stable,
+oxidized state \citep{Elizalde2023}. Its annual cost is usually put at 3--4\% of
+gross domestic product (GDP) for most nations, 15--35\% of it avoidable and much
+of it spent on inspection \citep{Nash2022}; globally, about US\$2.5 trillion a
+year \citep{Imran2025}. In China in 2014 it was about 2127.8 billion RMB (US\$310
+billion), 3.34\% of GDP \citep{Hou2017}. The burden is heaviest in energy and
+shipping: corrosion causes nearly 27\% of the gas pipeline incidents recorded by
+the European Gas Pipeline Incident Data Group \citep{Akhlaghi2023}, costs oil
+tankers about US\$969 million a year \citep{Imran2025}, and can lead to leaks,
+fires, explosions and pollution of soil and sea \citep{Akhlaghi2023,Alvani2026}.
 
+Uniform corrosion removes metal evenly, so what is visible broadly reflects what
+is lost. Pitting concentrates attack where the protective film breaks down,
+forming deep wells of small diameter \citep{Soares2023}, and is regarded as more
+dangerous because it is harder to detect \citep{Soares2023}: a surface that looks
+sound can hide deep local loss, with pit depths of 0.41 to 13.44\,mm in field data
+from buried pipelines \citep{Akhlaghi2023}. Depth therefore matters to safe
+operation as well as area \citep{Akhlaghi2023,Huang2026a}.
+
+Inspection is still mostly manual and visual, supported where access permits by
+ultrasonic, radiographic and magnetic particle testing, which are time-consuming,
+costly and dependent on skilled personnel \citep{Alvani2026}; visual inspection is
+also subjective and inconsistent \citep{Espinoza2026,Savino2025}. Access makes it
+worse: a full inspection of the tanks of a floating production, storage and
+offloading (FPSO) vessel takes ten to fifteen days in confined, unhealthy spaces
+\citep{Soares2023}.
+
+Deep learning on photographs now detects, segments and grades corrosion on
+pipelines, ships, bridges and towers \citep{Nash2022,Fu2024,Alvani2026,Savino2025},
+and a UAV can carry the camera to structures that are hazardous or slow to reach
+\citep{Savino2025,Nooralishahi2022}. A color camera, however, records appearance
+only. Rust can resemble paint, shadows and scratches, and red, orange and brown
+coatings resemble iron oxide in color \citep{Espinoza2026,Lavadiya2022};
+corrosion under intact coating is invisible to it
+\citep{Elizalde2023,Hernndez-Surez2026}; salt spray, humidity and changing light
+degrade the image \citep{Mao2026}; and severity is estimated as the fraction of
+corroded pixels, which does not measure material loss or depth
+\citep{Alvani2026}.
+
+Other sensors see what a camera misses. Thermography responds to defects beneath
+the surface through their effect on heat flow, and has revealed corrosion under
+paint and coatings \citep{Elizalde2023,Lim2021,Doshvarpassand2022}. LiDAR measures
+surface geometry at a distance, and has been used to assess section loss in steel
+members \citep{Maru2025} and to map corrosion in 3D
+\citep{PimenteldeFigueiredo2025}. Each sensor has weaknesses, but fused sensors
+offset one another's \citep{Tran2024}. This research fuses RGB, thermal and LiDAR
+data in one detection framework for corrosion.
 
 \section{Problem Statement}
 \label{sec:problem-statement}
-% -----------------------------------------------------------------
-% This is the three-leg gap argument. Keep the legs explicit and
-% separable -- examiners will attack them one at a time.
-%
-%   Leg 1 (domain gap): corrosion and marine/offshore inspection is
-%       overwhelmingly RGB-only or dual-modality; trimodal is rare.
-%   Leg 2 (sensor gap): the closest anchor work substitutes laser
-%       profilometry for true LiDAR; scanning geometry, range and
-%       field deployability differ materially.
-%   Leg 3 (ablation gap): fusion is widely assumed to help, but few
-%       primary studies test whether each added modality earns its
-%       place. Where they do, gains are modest -- and that is a
-%       finding, not a weakness in the proposal.
-%
-% The sharpened one-line version from the literature sweep:
-%   the trimodal sensing is solved (calibration literature), the
-%   bimodal corrosion detection is solved, and nobody has joined
-%   the two.
-% -----------------------------------------------------------------
 
-\note{Problem statement to be drafted}
+Camera-based detection mistakes look-alikes for corrosion, cannot see beneath
+paint and mostly reports affected area rather than depth of loss
+\citep{Alvani2026,Savino2025}; the few contactless depth estimates are made on
+prepared specimens under controlled conditions
+\citep{Egodawela2025,Doshvarpassand2022,Haitz2022,Maru2025}. Multi-sensor work on
+corrosion is limited. Of the 33 corrosion-sensing studies reviewed in
+Chapter~\ref{ch:literature-review}, 16 use RGB alone and five combine sensors,
+only one of which adds thermal imaging \citep{Lim2021}; none fuses RGB, thermal and
+LiDAR. Of the 40 fusion studies reviewed, the three that combine all three sensors
+address driving or calibration, not corrosion \citep{Tran2025,Tran2024,Yang2024}.
+Where a second sensor has been added for corrosion, its value is rarely measured:
+\citet{Haitz2022} found laser data only marginally better than color images alone
+and asked whether the extra sensor justifies the fusion it requires.
 
+The problem is therefore twofold: no reviewed study fuses RGB, thermal and LiDAR
+data to detect corrosion and measure its metal loss, and none measures what each
+of the three sensors contributes to detection.
+
+\subsection*{Hypothesis}
+
+RGB, thermal and LiDAR sensors fail under different conditions \citep{Tran2024}.
+A camera is degraded by shadow, poor light and salt spray
+\citep{Soares2023,Mao2026,Espinoza2026} and can mistake rust-colored paint for
+corrosion \citep{Espinoza2026,Lavadiya2022}. Thermal imaging sees defects below
+the surface \citep{Elizalde2023,Doshvarpassand2022,Hernndez-Surez2026} but is
+affected by sunlight, emissivity and, in passive use, weather
+\citep{Elizalde2023,Egodawela2025}, and by reflective surfaces \citep{Tran2024}.
+LiDAR measures shape but records no color, temperature or subsurface damage
+\citep{Ding2025}, and its point clouds are sparse \citep{Tran2024}. Because no two
+fail in the same way, it is hypothesized that a model fusing all three will detect
+corrosion more accurately, on mAP@0.5:0.95, than any single sensor, by more than
+the decision-rule margin of Chapter~\ref{ch:methodology}, and that the LiDAR will
+allow each detected region's metal loss to be measured as well as its area. If the
+fused model is no better than the best single sensor, the hypothesis is rejected
+and that result reported.
 
 \section{Research Questions}
 \label{sec:research-questions}
-% -----------------------------------------------------------------
-% Two or three questions, each one answerable by an objective below.
-% Keep them interrogative and testable. Descriptive -> relational ->
-% causal, per the CGS guidance deck.
-% -----------------------------------------------------------------
 
-\note{Research questions to be drafted}
-
-% \begin{enumerate}
-%   \item ...
-%   \item ...
-%   \item ...
-% \end{enumerate}
-
+\begin{enumerate}[label=RQ\arabic*.,leftmargin=*,itemsep=8pt]
+  \item How can RGB, thermal and LiDAR data of corroded metal surfaces be
+        registered to a common frame with pixel-level accuracy, when thermal and
+        LiDAR data share little visual appearance with RGB?
+  \item Does a model fusing registered RGB, thermal and LiDAR data detect
+        corroded regions more accurately than the same model given RGB alone,
+        and how accurately can each region's area and metal loss be measured
+        from the LiDAR?
+  \item What does each sensor contribute to detection when single-sensor,
+        paired and full configurations, with a blank-channel control, are trained
+        and evaluated under identical conditions?
+\end{enumerate}
 
 \section{Research Aim and Objectives}
 \label{sec:aim-objectives}
-% -----------------------------------------------------------------
-% One aim sentence, then exactly THREE objectives -- the template's
-% methodology diagram maps three objectives onto five milestones,
-% so three is the number the document expects.
-% Each objective must start with a measurable verb (to develop, to
-% evaluate, to quantify) and must map to a research question.
-% -----------------------------------------------------------------
 
-\subsection*{Aim}
-\note{Aim statement to be drafted}
+The aim is to develop and evaluate a machine learning framework that detects
+corroded regions on metal surfaces by fusing RGB, thermal and LiDAR data, measures
+each region's area and metal loss from the LiDAR, and determines what each sensor
+contributes to detection. The objectives are:
 
-\subsection*{Objectives}
-\begin{enumerate}[label=\textbf{Objective \arabic*:},leftmargin=*,align=left]
-  \item \note{objective 1}
-  \item \note{objective 2}
-  \item \note{objective 3}
+\begin{enumerate}[label=\arabic*),leftmargin=*,itemsep=6pt]
+  \item To develop a pipeline that aligns RGB, thermal and LiDAR data of metal
+        surfaces in a common reference frame.
+  \item To develop a fusion-based deep learning model that detects corroded
+        regions in the aligned data, and to measure each region's area and metal
+        loss from the LiDAR.
+  \item To evaluate each sensor's contribution through an ablation of
+        single-sensor, RGB--thermal, RGB--LiDAR and full configurations, with a
+        blank-channel control, under identical conditions.
 \end{enumerate}
-
 
 \section{Significance and Contribution of Research}
 \label{sec:significance}
-% -----------------------------------------------------------------
-% Separate the two:
-%   Contribution -- what is new (the join that has not been made,
-%       the ablation protocol, any dataset produced).
-%   Significance -- who benefits and how (asset integrity practice,
-%       inspection cost, the fusion literature's evidence base).
-% Be honest about the negative-result case: if the third modality
-% does not earn its place, that is still a publishable contribution.
-% -----------------------------------------------------------------
 
-\note{Significance and contribution to be drafted}
+\begin{enumerate}[label=\arabic*),leftmargin=*,itemsep=5pt]
+  \item \textbf{A registered RGB--thermal--LiDAR corrosion dataset.} Without a
+        public dataset, models are trained on local data and do not generalize
+        \citep{Nash2022}. Public corrosion datasets now exist
+        \citep{Espinoza2026}, but those identified are RGB-only. The dataset will
+        be released if the owners of the scanned structures permit.
+  \item \textbf{Contactless detection and measurement.} One fused model locates
+        each corroded region, and the LiDAR gives its area and metal loss in
+        physical units. No reviewed study does both with the three sensors.
+  \item \textbf{A controlled ablation of what each sensor adds.} A blank-channel
+        control separates what a sensor contributes from the effect of a larger
+        input. This answers, for contactless sensors, the question
+        \citet{Haitz2022} left open: whether an extra sensor is worth its cost,
+        including when it is not.
+\end{enumerate}
 
+For practice, the outcome shows which sensors are worth deploying, and adds a
+physical measure of metal loss to the area camera inspection already reports.
 
 \section{Scope of Study}
 \label{sec:scope}
-% -----------------------------------------------------------------
-% State the boundaries plainly -- this section is where examiners
-% look for realism about a two-year MSc.
-% In scope: the three modalities; the ablation protocol.
-% Explicitly OUT of scope: real-time adaptive learning.
-% Still open, decide before the defence: industry/application domain
-% (offshore is the candidate), detection vs segmentation, whether
-% severity quantification is attempted, and hyperspectral -- the
-% sweep found a substantial hyperspectral corrosion literature, so
-% say why thermal was chosen over it or the choice looks unexamined.
-% -----------------------------------------------------------------
 
-\note{Scope to be drafted}
+\begin{enumerate}[label=\arabic*),leftmargin=*,itemsep=5pt]
+  \item Only contactless optical sensing is used: RGB, thermal infrared and
+        LiDAR. Ultrasonic, eddy current and magnetic flux methods are reviewed
+        as context only.
+  \item Thermal imaging is chosen over hyperspectral imaging
+        (Section~\ref{sec:lr-modalities}).
+  \item Detection places bounding boxes in a single class; pixel-level
+        segmentation is not attempted.
+  \item Severity is the area and metal loss of each detected region from the
+        LiDAR, in physical units; volume and full 3D reconstruction are not
+        attempted.
+  \item The substrate and service environment will follow the data that can be
+        acquired.
+  \item Real-time adaptive learning, corrosion prevention and the prediction of
+        corrosion rate or remaining life are excluded.
+  \item The trimodal corrosion dataset is built in this research, starting with
+        controlled specimens; if field structures cannot be accessed in time,
+        evaluation remains on the specimens (Section~\ref{sec:acquisition}).
+\end{enumerate}

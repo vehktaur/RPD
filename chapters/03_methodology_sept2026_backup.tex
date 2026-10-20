@@ -1,0 +1,562 @@
+\chapter[METHODOLOGY]{Methodology}
+\label{ch:methodology}
+
+\section{Research Design}
+\label{sec:research-design}
+
+This research is quantitative and experimental. Its central claim --- that
+fusing RGB, thermal and LiDAR measurements improves the detection of corroded
+regions and the estimation of their depth --- is a claim about measurable
+performance, so it is settled by a controlled comparison rather than by
+argument. The design therefore has one spine: a set of models that differ only
+in which sensing modalities they receive, trained and evaluated under identical
+conditions, with the metrics and the decision rule fixed before any model is
+trained.
+
+The three objectives map onto three dependent workstreams. Objective~1 produces
+the registered trimodal data without which no comparison is possible.
+Objective~2 produces the model that consumes it. Objective~3 is the comparison
+itself, and it is the only one of the three whose outcome is genuinely open: a
+finding that the third modality does not repay its acquisition and registration
+cost is a valid answer to Research Question~4, and the protocol is written so
+that such a finding would be reported rather than absorbed.
+
+Two design decisions follow from Chapter~\ref{ch:literature-review} and are
+stated here because they constrain everything downstream. First, every modality
+must be physically sensed. A channel generated from another channel is not a
+second sensor, and the reviewed literature contains enough instances of derived
+channels presented as modalities that the distinction has to be made explicit
+rather than assumed. Second, fusion is performed at the input where the
+inspection-domain evidence supports it: \citet{Lim2021} stack chroma and thermal
+planes before any feature extraction, \citet{Yang2023} find early fusion
+outperforms later stages on building-envelope defects, and \citet{Maru2025}
+project image colour onto LiDAR returns before segmentation. Three independent
+inspection-domain studies point the same way, which is a stronger basis for the
+choice than the autonomous-driving literature's preference for intermediate
+fusion.
+
+\section{Project Activities}
+\label{sec:project-activities}
+
+\subsection{Data Acquisition}
+
+No public dataset pairs registered RGB, thermal and LiDAR measurements of
+corroded metal. That absence is part of the gap this research addresses, and it
+makes acquisition an activity of the research rather than an input to it. It is
+also the largest single risk to the schedule, and it is treated as such below.
+
+The primary route is a fixed multi-sensor rig imaging corroded and sound steel
+specimens at a controlled standoff. The sensor set is an RGB camera, a long-wave
+thermal camera and a LiDAR unit, mounted rigidly so that the extrinsic
+relationships are solved once rather than per capture --- the arrangement
+\citet{Nooralishahi2022} use for drone-based industrial inspection. Specimens
+span artificially corroded coupons, whose reference depths can be measured
+directly, and, where access permits, in-service structures, which supply the
+surface complexity that laboratory coupons lack. \citet{Lim2021} obtained a
+publishable result on two bridges from thirty-six acquired image pairs, which
+sets a realistic floor on how much data an initial study requires.
+
+Two acquisition questions are answered here rather than deferred, because both
+determine whether the method transfers to field inspection at all.
+
+\textbf{Excitation.} Every reviewed thermographic result on steel corrosion was
+obtained under deliberate thermal excitation: halogen lamps at one metre
+\citep{Lim2021}, quartz-tube heaters \citep{Elizalde2023}, and aerosol cryogen
+\citep{Doshvarpassand2022}. No reviewed study recovers subsurface corrosion in
+steel passively. Whether a passive regime is viable at inspection standoff is
+therefore an open methodological question this research must answer, not a
+capability it may assume. The acquisition protocol runs both regimes on the same
+specimens so that the answer is measured.
+
+\textbf{Timing.} Under active excitation the thermal measurement is a sequence
+rather than a frame: it runs from the stimulation event until the surface
+returns to ambient \citep{Doshvarpassand2022}. The thermal stream is then keyed
+to an event that the RGB and LiDAR streams are not. Bringing the three into
+correspondence is consequently a question of time as well as of geometry, and
+the acquisition protocol must define a common time base or state that the regime
+is passive and why.
+
+Should field access prove unobtainable within the schedule, evaluation falls
+back to laboratory specimens alone, and the generalisation limitation that
+\citet{Nash2022} document for single-site training data is reported as a
+constraint on the result rather than discovered after it.
+
+\subsection{Calibration and Registration}
+
+The three sensors see different things, at different resolutions, through
+different fields of view, and the standard solution does not transfer. A printed
+chessboard has no temperature contrast, so it is invisible to a thermal camera;
+the target-based procedure that calibrates an RGB--LiDAR pair therefore cannot
+be extended to the third sensor by adding a sensor. This is the substance of
+Research Question~1 and the reason Objective~1 exists as an objective rather than
+as a preprocessing footnote.
+
+Two routes are evaluated against each other. The first is targetless extrinsic
+calibration of exactly this sensor triple, for which \citet{Yang2024} report a
+trimodal error budget of 2.77\,cm and 0.21\textdegree between LiDAR
+and RGB against 3.86\,cm and 0.46\textdegree between LiDAR and
+thermal. The thermal channel is the worse-registered one in that budget, by
+roughly forty per cent in translation and a factor of two in rotation, which is
+consistent with it being the channel without a conventional target. The second
+route is a target that the thermal camera can resolve: the self-heating
+reference board of \citet{Nooralishahi2022}, whose pattern is sharp in both
+bands. Per-capture residual misalignment is then corrected by the coarse-to-fine
+multispectral registration of \citet{Li2024c}, which is one of the few methods
+in the reviewed literature that treats mismatched resolution and field of view
+as the problem to solve rather than as a given.
+
+Registration accuracy is reported as a result of Objective~1 in its own right,
+in pixels for the image pair and in millimetres for the projection of LiDAR
+returns onto the image plane. Reporting it matters beyond bookkeeping: the
+reviewed literature contains no published relationship between residual
+registration error and detection accuracy for this sensor set, so the pairing of
+a measured alignment error with a measured detection score is itself a
+contribution.
+
+\subsection{Preprocessing and Annotation}
+
+Two annotation products are required, not one. Bounding boxes around corroded
+regions supply the detection target. A reference maximum pit depth within each
+box supplies the regression target, and it is the harder of the two to obtain,
+because it cannot be read off an image.
+
+The reference instrument for depth is named here so that the error figures
+reported under Objective~2 are interpretable: an estimate quoted to a tenth of a
+millimetre is meaningless against ground truth of unstated uncertainty. The
+datum is likewise defined explicitly --- depth is measured from the reconstructed
+original surface plane of the specimen, not from the local surface, since the
+local surface is what corrosion has removed. Both choices are stated before
+measurement, and the instrument's own uncertainty is reported alongside every
+depth result.
+
+Preprocessing brings the three streams into the common frame established above
+and normalises each channel independently, because their dynamic ranges have
+nothing to do with one another. Augmentation that assumes natural-image colour
+statistics is disabled across all configurations: it is not a meaningful
+transformation on a thermal plane or a LiDAR depth plane, and applying it to
+some arms and not others would introduce exactly the confound the ablation
+exists to avoid.
+
+\subsection{Model Development}
+
+The detection task is object detection --- a bounding box per corroded region,
+single class --- and not semantic segmentation. Box annotation costs a fraction
+of pixel masks, which matters when the dataset does not yet exist, and mAP is
+the metric the fusion literature reports, so the ablation results can be set
+against published work.
+
+Development proceeds from a single-modality baseline to the fused model. The
+baseline is a conventional RGB detector, which fixes the level that fusion must
+exceed to be worth its cost; \citet{Alvani2026} and \citet{Imran2025} establish
+what appearance-only methods achieve on corrosion, and \citet{Imran2025} states
+from inside the domain that single-modality RGB is the ceiling his framework
+runs into.
+
+The fused model extends that baseline with the thermal and geometric channels at
+the input, and carries a second head that regresses one scalar per detection:
+the maximum pit depth inside the box. The depth value is regressed from the
+fused representation rather than read off the LiDAR returns directly. This is
+deliberate. A minimum over the LiDAR points inside a box would be arithmetic,
+not a learned quantity; it could not be ablated, and removing the geometric
+channel would leave the operator with no operand rather than with a degraded
+estimate, which would make the depth arm of Objective~3 vacuous. Because the
+scalar is regressed, every configuration in the ablation carries a depth head,
+and the RGB-only arm is a real comparator rather than a straw one ---
+\citet{Egodawela2025} regress metal-loss depth from appearance alone at
+0.2829\,mm, which is the existence proof that appearance-only
+depth regression is a comparator worth beating.
+
+\subsection{Ablation Protocol}
+\label{sec:ablation-protocol}
+
+This is the methodological contribution of the research, and it is specified in
+full before any result exists. Its purpose is to remove the freedom to choose,
+after seeing the numbers, which comparison to report.
+
+\textbf{Configurations.} Six arms are trained: RGB only; thermal only; LiDAR
+only; RGB with thermal; RGB with LiDAR; and the full trimodal set. The three
+single-modality arms are controls rather than candidates. They answer a question
+the dual and trimodal arms cannot: whether the first modality already suffices,
+which is the condition under which fusion has been observed to add nothing.
+
+\textbf{The blank-channel control.} One further arm is trained in which the
+additional channel is present but carries no information. Its purpose is to
+separate the value of the information from the value of the machinery: a fusion
+architecture has more capacity and more parameters than a single-stream one, and
+without this control a gain attributable to capacity would be credited to the
+sensor. This control is absent from almost all of the reviewed fusion
+literature.
+
+\textbf{Held constant.} Architecture, optimiser, learning-rate schedule, epoch
+budget, batch size, image size, augmentation, early-stopping criterion and the
+data split. The split is drawn once with a fixed seed and reused unchanged by
+every arm. Weights are initialised identically across arms; where pretrained
+weights are used they are reported separately, because weights fitted to natural
+RGB statistics hand the RGB arm a transfer advantage unrelated to the
+information in its channels.
+
+\textbf{Metrics, fixed now.} For detection: mAP at 0.5 and mAP averaged
+over 0.5 to 0.95, with precision and recall reported alongside. Both
+thresholds are reported rather than the looser one alone, because thermal and
+LiDAR are expected to sharpen box placement more than they change whether a
+region is found at all, and mAP@0.5 would hide that. For depth: mean
+absolute error in millimetres against the named reference instrument, reported
+with the instrument's own uncertainty, and reported separately for shallow
+defects --- \citet{Maru2025} report 7.8\% mean depth error rising to
+17.2\% at 0.5\,mm, so an aggregate figure would
+conceal failure in exactly the early-stage case worth catching.
+
+\textbf{Repeats.} Every arm is trained with three seeds. Results are reported as
+the mean over seeds with the observed range, never as a single best run.
+
+\textbf{The decision rule.} A modality earns its place if the arm containing it
+exceeds the best arm without it, on the primary metric, by more than the largest
+between-seed spread observed in any arm. Stating the rule in advance and
+comparing the gain against the run-to-run variation the experiment itself
+exhibits is what stops a difference smaller than noise from being reported as an
+effect. Applied to each added channel in turn, the rule also prevents a channel
+being credited with the residual of the one before it.
+
+This is not a formality. \citet{Rashidi2026} find a single modality insufficient
+on unseen structures under leave-one-bridge-out validation, while recent
+radiometric RGB--thermal work on building facades reports a gain confined to one
+defect category with no improvement in aggregate accuracy over RGB alone. The
+literature supports both outcomes, which is precisely why the question is worth
+asking empirically.
+
+\subsection{Validation and Benchmarking}
+
+Validation is held out at the level of the structure, not the image. Random
+image-level splits leak: adjacent frames of the same corroded region appear on
+both sides of the split, and the reported score then measures memorisation.
+\citet{Rashidi2026} hold out whole bridges for this reason, and their conclusion
+--- that single-modality performance does not survive the move to an unseen
+structure --- only follows because of how they split.
+
+Benchmarking is against three references. The RGB-only arm of this research's
+own ablation is the internal baseline. Published appearance-only corrosion
+detection results supply the external one. The fused arm is set against
+\citet{Lim2021}, the closest published RGB-plus-thermal corrosion result, with
+the caveats of that comparison stated: a different structure type, a different
+detector generation, and an active excitation regime.
+
+Robustness is assessed by degrading each channel rather than removing it, which
+yields a gradient instead of a binary and locates the point at which a modality
+stops contributing. For the thermal channel the degradations are reduced
+excitation and increased ambient variation; for the geometric channel, added
+range noise and reduced point density; for all channels, controlled
+misregistration, which produces the error-versus-accuracy relationship the
+reviewed literature does not contain.
+\section{Objectives and Key Milestones}
+\label{sec:milestones}
+% -----------------------------------------------------------------
+% The Word template carries a SmartArt diagram mapping three
+% objectives onto five milestones. The TikZ figure below reproduces
+% that mapping -- edit the labels once the objectives are settled.
+% -----------------------------------------------------------------
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  obj/.style={draw,thick,rounded corners,align=center,
+              minimum width=3.4cm,minimum height=1.15cm,
+              fill=blue!8,inner sep=3pt},
+  ms/.style={draw,thick,rounded corners,align=center,
+             minimum width=5.0cm,minimum height=0.9cm,
+             fill=orange!12,inner sep=3pt},
+  arr/.style={-{Latex[length=2mm]},thick,gray!65}
+]
+% --- milestones: an evenly spaced ladder on the right ---
+\node[ms] (m1) at (0,0) {\footnotesize\textbf{M1} Dataset assembled \& annotated};
+\node[ms,below=0.32cm of m1] (m2) {\footnotesize\textbf{M2} Registration pipeline validated};
+\node[ms,below=0.32cm of m2] (m3) {\footnotesize\textbf{M3} Baseline \& fused models trained};
+\node[ms,below=0.32cm of m3] (m4) {\footnotesize\textbf{M4} Ablation study completed};
+\node[ms,below=0.32cm of m4] (m5) {\footnotesize\textbf{M5} Results validated \& benchmarked};
+
+% --- objectives: centered against the milestones each one owns ---
+\node[obj] (o1) at ($(m1.west)!0.5!(m2.west) + (-2.5cm,0)$)
+  {\textbf{Objective 1}\\[-2pt]\footnotesize Registration \&\\[-3pt]\footnotesize preprocessing};
+\node[obj] (o2) at ($(m3.west) + (-2.5cm,0)$)
+  {\textbf{Objective 2}\\[-2pt]\footnotesize Detection and\\[-3pt]\footnotesize depth model};
+\node[obj] (o3) at ($(m4.west)!0.5!(m5.west) + (-2.5cm,0)$)
+  {\textbf{Objective 3}\\[-2pt]\footnotesize Modality\\[-3pt]\footnotesize ablation};
+
+\draw[arr] (o1.east) -- (m1.west);
+\draw[arr] (o1.east) -- (m2.west);
+\draw[arr] (o2.east) -- (m3.west);
+\draw[arr] (o3.east) -- (m4.west);
+\draw[arr] (o3.east) -- (m5.west);
+\end{tikzpicture}
+\caption{Mapping of research objectives to key milestones.}
+\label{fig:objectives-milestones}
+\end{figure}
+
+\begin{table}[htbp]
+\centering
+\caption{Key milestones and expected completion.}
+\label{tab:milestones}
+\begin{tabularx}{\textwidth}{@{}l X l@{}}
+\toprule
+\textbf{Milestone} & \textbf{Description} & \textbf{Target} \\
+\midrule
+M1 & Registered trimodal dataset assembled and annotated & Jul 2027 \\
+M2 & Registration and preprocessing pipeline validated & Aug 2027 \\
+M3 & Baseline (RGB-only) and fused detection--depth models trained & Nov 2027 \\
+M4 & Modality ablation over detection and depth completed & Feb 2028 \\
+M5 & Results validated and benchmarked & Mar 2028 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Study Plan}
+\label{sec:study-plan}
+
+The research runs from May 2026 to April 2028. Figure~\ref{fig:gantt} sets out
+the schedule, and Table~\ref{tab:milestones} lists the milestones that mark its
+completion points.
+
+% --- Gantt palette and legend keys -------------------------------
+\definecolor{gLit}{HTML}{4E79A7}
+\definecolor{gProp}{HTML}{3D8C86}
+\definecolor{gProg}{HTML}{B07AA1}
+\definecolor{gData}{HTML}{59A14F}
+\definecolor{gModel}{HTML}{F28E2B}
+\definecolor{gThesis}{HTML}{9C755F}
+\definecolor{gPhase}{HTML}{4A4A4A}
+\definecolor{gMile}{HTML}{C0392B}
+\newcommand{\gkey}[1]{\tikz[baseline=-0.55ex]{\fill[#1,draw=black!55,line width=0.3pt]
+  (0,-0.09) rectangle (0.40,0.13);}}
+\newcommand{\gdia}{\tikz[baseline=-0.55ex]{\fill[gMile,draw=black!55,line width=0.3pt]
+  (0.00,0.02) -- (0.11,0.15) -- (0.22,0.02) -- (0.11,-0.11) -- cycle;}}
+
+\begin{landscape}
+\begin{figure}[p]
+\centering
+\begin{ganttchart}[
+  hgrid, vgrid,
+  x unit=0.70cm,
+  y unit title=0.50cm,
+  y unit chart=0.40cm,
+  title height=1,
+  bar height=0.62,
+  group height=0.5,
+  milestone height=0.5,
+  bar/.append style={draw=black!55,thin},
+  group/.append style={fill=gPhase,draw=gPhase},
+  milestone/.append style={fill=gMile,draw=black!60},
+  title label font=\footnotesize,
+  group label font=\bfseries\scriptsize,
+  bar label font=\scriptsize,
+  milestone label font=\scriptsize\itshape,
+  title/.append style={fill=black!8},
+  bar label node/.append style={align=left,text width=5.2cm},
+  group label node/.append style={align=left,text width=5.2cm},
+  milestone label node/.append style={align=left,text width=5.2cm}
+]{1}{24}
+\gantttitle{2026}{8}
+\gantttitle{2027}{12}
+\gantttitle{2028}{4} \\
+\gantttitle{M}{1} \gantttitle{J}{1} \gantttitle{J}{1} \gantttitle{A}{1} \gantttitle{S}{1} \gantttitle{O}{1} \gantttitle{N}{1} \gantttitle{D}{1} \gantttitle{J}{1} \gantttitle{F}{1} \gantttitle{M}{1} \gantttitle{A}{1} \gantttitle{M}{1} \gantttitle{J}{1} \gantttitle{J}{1} \gantttitle{A}{1} \gantttitle{S}{1} \gantttitle{O}{1} \gantttitle{N}{1} \gantttitle{D}{1} \gantttitle{J}{1} \gantttitle{F}{1} \gantttitle{M}{1} \gantttitle{A}{1} \\
+
+\ganttgroup{1. Literature review and review paper}{1}{10} \\
+\ganttbar[bar/.append style={fill=gLit}]{Paper search and collection}{1}{6} \\
+\ganttbar[bar/.append style={fill=gLit}]{Systematic reading and screening}{2}{8} \\
+\ganttbar[bar/.append style={fill=gLit}]{Synthesis and gap analysis}{4}{9} \\
+\ganttbar[bar/.append style={fill=gLit}]{Review paper draft}{7}{10} \\
+\ganttmilestone{Review paper submitted}{10} \\
+
+\ganttgroup{2. Research proposal}{3}{5} \\
+\ganttbar[bar/.append style={fill=gProp}]{Proposal writing}{3}{5} \\
+\ganttmilestone{Proposal defense}{5} \\
+
+\ganttgroup{3. Programming and tooling}{2}{12} \\
+\ganttbar[bar/.append style={fill=gProg}]{Python: fundamentals and ML libraries}{2}{7} \\
+\ganttbar[bar/.append style={fill=gProg}]{MATLAB: toolboxes and sensor fusion}{5}{10} \\
+\ganttbar[bar/.append style={fill=gProg}]{C++: image and point-cloud processing}{8}{12} \\
+
+\ganttgroup{4. Dataset and preprocessing}{6}{16} \\
+\ganttbar[bar/.append style={fill=gData}]{Data acquisition (RGB, thermal, LiDAR)}{6}{13} \\
+\ganttbar[bar/.append style={fill=gData}]{Calibration and registration}{9}{14} \\
+\ganttbar[bar/.append style={fill=gData}]{Labeling and annotation}{11}{15} \\
+\ganttbar[bar/.append style={fill=gData}]{Reference depth measurement}{11}{15} \\
+\ganttbar[bar/.append style={fill=gData}]{Multimodal preprocessing pipeline}{13}{16} \\
+\ganttbar[bar/.append style={fill=gData}]{Registration accuracy validation}{14}{16} \\
+
+\ganttgroup{5. Model development and evaluation}{13}{23} \\
+\ganttbar[bar/.append style={fill=gModel}]{Baseline model (single modality)}{13}{16} \\
+\ganttbar[bar/.append style={fill=gModel}]{Fused model (RGB, thermal and LiDAR)}{15}{19} \\
+\ganttbar[bar/.append style={fill=gModel}]{Depth regression head}{16}{20} \\
+\ganttbar[bar/.append style={fill=gModel}]{Validation and benchmarking}{21}{23} \\
+\ganttbar[bar/.append style={fill=gModel}]{Ablation study and optimization}{20}{22} \\
+\ganttmilestone{Model finalized}{23} \\
+
+\ganttgroup{6. Thesis writing and dissemination}{17}{24} \\
+\ganttbar[bar/.append style={fill=gThesis}]{Thesis chapters (draft)}{17}{23} \\
+\ganttbar[bar/.append style={fill=gThesis}]{Journal paper preparation}{19}{23} \\
+\ganttmilestone{Thesis submitted and viva}{24}
+\end{ganttchart}
+
+\vspace{0.6\baselineskip}
+{\footnotesize
+\begin{tabular}{@{}llll@{}}
+\gkey{gPhase}~Phase span & \gkey{gLit}~Literature and review paper & \gkey{gProp}~Research proposal & \gkey{gProg}~Programming and tooling \\[2pt]
+\gdia~Milestone & \gkey{gData}~Dataset and preprocessing & \gkey{gModel}~Model development & \gkey{gThesis}~Thesis and dissemination \\
+\end{tabular}}
+
+\caption{Study plan, May 2026 to April 2028. Each phase span marks the full
+extent of a workstream; the bars beneath it are its constituent activities.}
+\label{fig:gantt}
+\end{figure}
+\end{landscape}
+
+
+\section{Preliminary Results}
+\label{sec:preliminary-results}
+
+A pilot experiment was conducted to exercise the ablation protocol of
+Section~\ref{sec:ablation-protocol} before the trimodal dataset exists. Its
+purpose is to establish that the protocol runs end to end and produces an
+interpretable verdict --- not to produce a corrosion result, which it cannot,
+for the reason given below.
+
+\subsection{Rationale and scope}
+
+Objective~3 claims that the contribution of each modality will be established
+empirically rather than assumed. That claim is only worth making if the
+machinery that would establish it exists and has been shown to work. Since no
+public dataset pairs registered RGB and thermal imagery of corroded steel ---
+the absence that motivates this research --- the pilot runs on LLVIP
+\citep{Jia2021}, a set of 15{,}488 visible and long-wave thermal image pairs
+registered at capture. Registration is therefore not a confounding variable, and
+what the experiment isolates is the contribution of the channels themselves.
+
+The pilot exercises the first two rungs of the Objective~3 ladder. It makes no
+claim about corrosion, and no claim about LiDAR. Consistent with the sensing
+requirement stated in Section~\ref{sec:research-design}, no channel in the pilot
+is synthesised from another: the thermal plane is measured by a thermal camera.
+
+\subsection{Design}
+
+Four input encodings were compared. Each is a three-channel image, so the
+backbone, the input stem and the parameter count are identical across arms and
+any difference in the metric is attributable to the information in the channels
+rather than to a change in model capacity.
+
+\begin{table}[htbp]
+\centering
+\caption{Input encodings compared in the pilot. All four are three-channel, so
+model capacity is held constant across arms.}
+\label{tab:prelim-arms}
+\begin{tabularx}{\textwidth}{@{}l l X@{}}
+\toprule
+\textbf{Arm} & \textbf{Channels} & \textbf{What it isolates} \\
+\midrule
+RGB & R, G, B & the single-modality appearance baseline \\
+CbCr & Cb, Cr, constant & colour-space effect with no additional sensor \\
+Thermal & T, T, T & the thermal channel alone \\
+CbCr--IR & Cb, Cr, T & fusion of the two sensors \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The fused encoding is the construction of \citet{Lim2021}, in which a
+two-channel chroma image is stacked with a one-channel thermal image before any
+feature extraction. Reusing it means the pilot tests the closest published
+RGB-plus-thermal corrosion design rather than an invention of this research.
+
+The CbCr arm exists to separate two effects that \citet{Lim2021} change
+together. His fused input alters the colour space and adds a sensor in the same
+step, so his comparison against RGB cannot attribute the gain to either.
+Isolating the colour-space change is what makes the thermal contribution
+measurable.
+
+Detection uses a single-stage detector \citep{Ultralytics2023} under the fixed
+recipe of Section~\ref{sec:ablation-protocol}: one architecture, one schedule,
+one split drawn with a fixed seed and reused by every arm, colour-jitter
+augmentation disabled throughout, and three seeds per arm. The primary metric is
+mAP averaged over 0.5 to 0.95 on a held-out test split. The decision rule is the
+one stated in Section~\ref{sec:ablation-protocol} and is applied mechanically to
+whatever the runs produce.
+
+\subsection{Result}
+
+% Replace this table with prelim_ablation/results/table.tex once the runs finish.
+\begin{table}[htbp]
+\centering
+\caption{Modality ablation on the pilot dataset. All arms share one
+architecture, one training recipe and one data split; only the input channels
+differ. Figures are the mean over three seeds, with the observed range in
+parentheses.}
+\label{tab:prelim-ablation}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Input} & \textbf{mAP@0.5 (\%)} & \textbf{mAP@0.5:0.95 (\%)} & \textbf{Precision (\%)} & \textbf{Recall (\%)} \\
+\midrule
+RGB & --- & --- & --- & --- \\
+CbCr & --- & --- & --- & --- \\
+Thermal & --- & --- & --- & --- \\
+CbCr--IR (fused) & --- & --- & --- & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For reference, \citet{Lim2021} report the same comparison on steel bridge
+corrosion, on thirty-six acquired image pairs. His figures are reproduced in
+Table~\ref{tab:lim-ablation} because they are the only published modality
+ablation on corrosion with both an RGB arm and a thermal arm, and because the
+shape of that result --- rather than its magnitude --- is what the pilot tests
+for.
+
+\begin{table}[htbp]
+\centering
+\caption{Modality ablation on steel bridge corrosion reported by
+\citet{Lim2021}. AP$_1$ is surface corrosion, AP$_2$ subsurface. The fused input
+exceeds the best appearance-only arm on surface corrosion and the best
+thermal-only arm on subsurface corrosion, so the gain is not a trade between the
+two tasks.}
+\label{tab:lim-ablation}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Input} & \textbf{AP$_1$ (\%)} & \textbf{AP$_2$ (\%)} & \textbf{mAP (\%)} \\
+\midrule
+\textbf{CbCr--IR (fused)} & \textbf{88.84} & \textbf{88.59} & \textbf{88.72} \\
+RGB & 78.97 & 11.54 & 45.26 \\
+CbCr & 83.13 & 3.45 & 43.29 \\
+Thermal (lock-in amplitude) & 55.52 & 87.08 & 71.30 \\
+Thermal (three raw frames) & 51.75 & 79.23 & 65.49 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Three things in Table~\ref{tab:lim-ablation} bear directly on this research.
+The appearance channels are almost blind to subsurface corrosion, at 11.54\% and
+3.45\% average precision, which is the sensory argument for a thermal channel
+stated as a measurement rather than as an expectation. The thermal channel alone
+is the weaker detector of surface corrosion, at 55.52\%, because structural
+features such as bolts and welded joints produce false alarms --- so neither
+channel dominates and the case for fusion is symmetric. And the fused arm
+exceeds each single-modality arm on that arm's own strength, which is the
+outcome an examiner would reasonably doubt: fusion here is not a compromise
+between two partial detectors.
+
+The comparison carries two caveats. The result was obtained under active
+excitation by halogen lamps at one metre, so it does not establish that a
+passive thermal channel would behave the same way; and the reported figures
+come from a twenty-image test set, half of which are rotations of the other
+half, so the effective test set is ten independent images.
+
+\subsection{What the pilot establishes, and what it does not}
+
+It establishes that the ablation protocol of
+Section~\ref{sec:ablation-protocol} is executable: the encodings, the fixed
+recipe, the seed repeats, the metric collection and the mechanical application
+of the decision rule all run, and the pipeline that produces them transfers
+unchanged to the trimodal experiment. Adding LiDAR adds arms and a geometric
+channel to the encoding; it does not change the protocol.
+
+It does not establish anything about corrosion. The pilot's domain is not this
+research's domain, its target class is not corrosion, and its registration was
+solved by the dataset's authors rather than by this research. Those three gaps
+are what Objectives~1 and~2 exist to close, and the pilot is evidence that the
+instrument for closing them is built and working, not that the answer is already
+known.

@@ -1,0 +1,1180 @@
+\chapter[LITERATURE REVIEW]{Literature Review}
+\label{ch:literature-review}
+
+\section{Introduction}
+\label{sec:lr-introduction}
+
+This chapter reviews the literature in seven parts, each addressing a question
+raised by the one before it. Section~\ref{sec:lr-corrosion} establishes what
+corrosion is, which forms it takes, and what an inspection method would have to
+measure. Section~\ref{sec:lr-corrosion-detection} examines how corrosion is
+detected in practice and what current methods fail to recover.
+Section~\ref{sec:lr-modalities} considers what each sensing modality can
+physically contribute. Section~\ref{sec:lr-fusion} reviews how modalities are
+combined, how they are spatially registered, and whether the evidence shows an
+added modality improving performance. Section~\ref{sec:lr-architectures} surveys
+the learning architectures that consume these streams, and
+Section~\ref{sec:lr-datasets} examines the data and evaluation practice on which
+reported results rest. Section~\ref{sec:lr-gap} draws the strands together into
+a statement of the research gap.
+
+The review covers publications from 2021 onwards, retrieved from Scopus, Web of
+Science, IEEE Xplore and ScienceDirect. Original journal research articles are
+preferred throughout; conference papers and preprints are cited where they
+report evidence unavailable elsewhere, and are identified as such. Review
+articles are cited for context but do not contribute rows to the comparative
+tables.
+
+Much of the fusion literature reviewed in Section~\ref{sec:lr-fusion} is
+directed at applications other than corrosion. This is deliberate. Multimodal
+fusion matured elsewhere, and the registration techniques, fusion architectures
+and evaluation practices developed there are what a corrosion application would
+have to draw on. The distance between those
+domains and this one is itself part of the argument developed in
+Section~\ref{sec:lr-gap}.
+
+\section{Corrosion}
+\label{sec:lr-corrosion}
+
+Corrosion proceeds by an electrochemical mechanism. An electrolyte in contact
+with the metal permits ion transfer between anodic and cathodic regions; iron is
+oxidized at the anode and the liberated electrons migrate to the cathode, where
+they reduce dissolved oxygen and water. Where two dissimilar metals share an
+electrolyte, the less noble becomes the anode and corrodes preferentially while
+the more noble is protected \citep{Qin2026,Wojciechowski2025}. The substrates affected span
+industrial practice as a whole: buried and above-ground pipelines
+\citep{Akhlaghi2023,Alvani2026}, reinforcement embedded in concrete \citep{Yang2025}, stainless steel process equipment
+\citep{Li2022,Wojciechowski2025}, ship hulls and marine components \citep{Wang2021,Arias2025}, and
+structural steel under atmospheric exposure \citep{DeKerf2022}.
+
+The forms corrosion takes are conventionally distinguished by morphology.
+Uniform corrosion proceeds evenly across an exposed surface because anodic and
+cathodic sites are microscopic and shift continuously, so no location remains
+anodic long enough to develop a pit; the resulting loss is predictable and can
+be expressed as a rate in millimeters per year, which permits a corrosion
+allowance to be designed into the structure \citep{Yang2026a,Arias2025}. Localized forms
+behave differently. In pitting, a break in the passive film establishes a small
+anode within a large cathode, and the resulting current concentration drives
+deep penetration at a single location; the pit interior acidifies as metal ions
+hydrolyze and chloride migrates inward, so the attack sustains itself
+\citep{Nguyen2026,Liu2026,Li2022}. It is the most common of the localized forms,
+and \citet{Huang2026a} state that the variability of its condition makes pitting
+considerably harder to monitor than uniform attack, which is the practical
+counterpart of the mechanism just described: uniform loss can be sampled
+anywhere, while a pit has to be found before it can be measured. Crevice corrosion arises by the same differential-aeration
+mechanism in oxygen-starved gaps beneath gaskets, deposits and joints \citep{Nguyen2026}.
+Galvanic corrosion follows from dissimilar-metal contact, its severity governed
+by the anode-to-cathode area ratio, while intergranular attack proceeds along
+chromium-depleted zones adjacent to grain-boundary carbides, leaving a surface
+that appears sound while cohesion is lost \citep{Qin2026,Wojciechowski2025}. Stress corrosion cracking
+requires a susceptible alloy, tensile stress and a specific corrosive species
+acting together; cracks initiate at pits and propagate with little visible
+product, so a ductile metal can fail in brittle fashion below its yield strength
+\citep{Liu2026,Akhlaghi2023}. Microbially influenced corrosion is driven principally by
+sulfate-reducing bacteria, whose biofilms establish a local chemistry
+independent of the bulk water and are held responsible for a substantial share
+of corrosion damage in marine service \citep{Liang2021}.
+
+Corrosion is also classified by exposure environment, a separate axis along
+which the morphology within each class varies with local conditions.
+Atmospheric corrosion begins once relative humidity exceeds a critical value and
+a thin electrolyte film forms, so the time of wetness governs the rate;
+dissolved carbon dioxide and nitrogen oxides acidify the film and raise its
+conductivity \citep{Arias2025,DeKerf2022}. In soil, uneven moisture, oxygen and chemistry
+along a buried length render one stretch anodic relative to another, forming
+macro-cells that span meters of pipe and favoring localized attack over uniform
+loss \citep{Akhlaghi2023}. In oil and gas service, carbon dioxide dissolved in produced water
+forms carbonic acid and attacks preferentially where the protective iron
+carbonate scale breaks down, while hydrogen sulfide forms sulfide films and
+supplies atomic hydrogen, raising the risk of sulfide stress cracking
+\citep{Huang2026a,Alvani2026}.
+
+The factors that govern all of these are broadly common: chloride
+concentration, dissolved oxygen, temperature, relative humidity, pH,
+atmospheric pollutants, surface condition, and the presence of microorganisms
+\citep{Liu2026,Li2022,Liang2021}. Their consequences, however, are not equivalent.
+Table~\ref{tab:corrosion} summarizes the corrosion studies reviewed, recording
+for each the form addressed, the driving factors, the detection method where one
+is applied, the severity measure reported, and the class of structure studied.
+
+\begingroup
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\begin{xltabular}{\textwidth}{@{}l X X X l@{}}
+\caption{Summary of corrosion studies reviewed.}\label{tab:corrosion}\\
+\toprule
+\textbf{Form} & \textbf{Driving factors} & \textbf{Detection method} & \textbf{Severity reported} & \textbf{Ref.} \\
+\midrule
+\endfirsthead
+\multicolumn{5}{@{}l}{\footnotesize\itshape Table~\thetable\ (continued)}\\
+\toprule
+\textbf{Form} & \textbf{Driving factors} & \textbf{Detection method} & \textbf{Severity reported} & \textbf{Ref.} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{5}{r@{}}{\footnotesize\itshape Continued on next page}\\
+\endfoot
+\bottomrule
+\endlastfoot
+Pitting & Hydrochloric acid & Multi-spectral imaging, thermocouple, PCA and FNN; 0.2829 mm depth error & Metal loss depth & \citep{Egodawela2025} \\
+Pitting & Chloride, compositional inhomogeneity & --- & Pit depth to 1305.4 \si{\micro\meter} & \citep{Qin2026} \\
+Pitting & Chloride, oxygen, iron-oxidizing bacteria & --- & --- & \citep{Nguyen2026} \\
+Pitting & Chloride, temperature, stress & --- & Pit depth to 3.7 mm, width to 18 mm & \citep{Liu2026} \\
+Pitting & Chloride, hypochlorite, pH & --- & --- & \citep{Li2022} \\
+Pitting & Pressure, temperature, oxygen, chloride & --- & Pit depth to 10.86 \si{\micro\meter} & \citep{Wang2021} \\
+Pitting & Soil properties, chloride, sulfate, pH & --- & Pit depth 0.41--13.44 mm & \citep{Akhlaghi2023} \\
+Pitting & --- & Ultrasonic thickness, FSM and ANN & Over half the wall thickness & \citep{Huang2026a} \\
+Pitting & Humidity, temperature, pollutants & Ultrasonic, RGB and LiDAR, cross-attention fusion; 98.44\% & Ordinal grade; modality ablation reported & \citep{Ding2025} \\
+Pitting & Chloride, air, water, pollution & Active thermography with mHCD-2 & --- & \citep{Elizalde2023} \\
+Pitting, intergranular & Anodic polarization, sodium sulfate & --- & --- & \citep{Wojciechowski2025} \\
+Uniform & Chloride & Acoustic sensing with LBP, HOG and SVM; 98.14\% & --- & \citep{Yang2026a} \\
+Uniform & Chloride, humidity & Pulsed eddy current with TMR sensor & Rebar 18 mm to 10.58 mm & \citep{Yang2025} \\
+Atmospheric & Chloride, humidity, pollutants & VIS--NIR hyperspectral with MLP & Five ordinal classes & \citep{Arias2025} \\
+Atmospheric & Chloride & SWIR hyperspectral with random forest; 3.27--13.37\% error & --- & \citep{DeKerf2022} \\
+Microbial & Sulfate-reducing bacteria & --- & --- & \citep{Liang2021} \\
+\end{xltabular}
+\endgroup
+
+Two observations follow from the table. Pitting is the form most frequently
+addressed, appearing in 11 of the 25 studies reviewed across this section and
+Section~\ref{sec:lr-corrosion-detection}, and the reason is a mismatch between
+what the surface reveals and what the metal has lost: chloride attack drives
+deep into the substrate while the surface presents only superficial rust
+\citep{Nguyen2026,Akhlaghi2023}. Field measurements bear this out, with reported pit depths ranging
+from 10.86 \si{\micro\meter} on marine stainless components \citep{Wang2021} to 13.44 mm
+in buried transmission pipelines \citep{Akhlaghi2023}.
+
+The second observation concerns measurement. Thirteen of the 25 studies never
+quantify material loss at all, reporting electrochemical current or a corrosion
+rate instead, quantities that describe how rapidly attack proceeds rather than
+its physical extent \citep{Liang2021}. Of the 12 that do quantify damage, the measures
+are mutually incompatible: pit depth \citep{Qin2026,Liu2026,Wang2021,Akhlaghi2023}, percentage of surface area
+affected \citep{Alvani2026}, remaining wall thickness \citep{Yang2025}, or an ordinal grade
+\citep{Arias2025,Bui2026,Ding2025}. \citet{Alvani2026} states the limitation explicitly, noting that
+image-based severity assessment cannot measure material loss or corrosion depth.
+No common basis for comparison therefore exists across the literature, and any
+method claiming to recover true material loss must establish its own.
+
+\section{Corrosion Inspection and Detection}
+\label{sec:lr-corrosion-detection}
+
+Detection of corrosion has traditionally relied on non-destructive testing.
+Ultrasonic thickness measurement, pulsed eddy current, magnetic flux leakage,
+radiographic testing and acoustic emission are all established in industrial
+practice \citep{Huang2026a,Yang2026a,Yang2025}, and each returns a physical quantity rather than an
+appearance. Their limitations are practical rather than physical: the equipment
+is bulky and costly, deployment requires surface access and skilled operators,
+and scalability to continuous monitoring of a large asset is correspondingly
+limited \citep{Alvani2026}. At the scale of a large industrial asset this is
+impractical \citep{Imran2025}.
+
+Optical inspection offers contactless acquisition at a rate that non-destructive
+testing cannot match, and the recent literature is dominated by learned
+image-based methods. Three task formulations recur. Classification assigns a
+label to an image or a patch, and has been applied to hull plates using AlexNet
+with a sliding-window scan \citep{Yao2019} and to gas pipeline imagery using a VGG16
+backbone with an XGBoost head \citep{Alvani2026}. Segmentation labels each pixel, and has
+been applied to marine vessel hulls with a
+U-Net, BiLSTM and DFE-NET combination reporting an F1-score of 0.8319 \citep{Yu2022},
+and to industrial steel structures with a Bayesian HRNetV2 that additionally
+returns per-pixel confidence \citep{Nash2022}. Detection returns bounding boxes and is
+represented by YOLO-family models applied to reinforced concrete via GPR
+B-scans \citep{Bui2026}. Classical image processing
+retains a place: \citet{Imran2025} report 96.52\% segmentation accuracy using
+filtering with a Chan--Vese active contour on ship structures, without a learned
+model. What displaced such methods as the default was not accuracy but labor.
+\citet{Yao2019} observe that grading corrosion through hand-crafted feature
+extraction ties the method to the particular structure it was designed around
+and carries a workload in manpower and cost that does not scale, whereas a
+convolutional network derives the features from the data provided the samples
+are there.
+
+Reported accuracies across this literature are high, frequently exceeding 90\%
+\citep{Alvani2026,Imran2025,Yao2019,Lavadiya2022}. The figures are not directly comparable, however, since the
+task formulations differ, the datasets are private and locally collected, and
+the severity measures are inconsistent. \citet{Nash2022} documents the
+underlying difficulty: in the absence of a public corrosion dataset, models are
+trained on data suited to immediate local conditions and fail to generalize
+beyond them, producing substantial false positive and false negative rates when
+deployed in the field. \citet{Alvani2026} names the sources of the variation
+that defeats them: coatings, illumination, camera optics and surface background
+all differ across operators and inspection campaigns, so the same corroded
+surface does not present the same appearance twice.
+
+The ceiling is recognized from inside this literature rather than only from
+outside it. \citet{Imran2025} identify their own reliance on a single imaging
+modality as the constraint on what their framework can adapt to, and name the
+combination of optical, thermal and acoustic sensing as the route to corrosion
+that one modality does not capture, assigning the thermal channel the specific
+role of revealing the temperature variations that indicate loss beneath the
+surface. Their third channel is sonar rather than a ranging sensor, which the
+submerged setting of their application makes the natural choice. What the
+passage establishes is not a particular sensor set but where the limit sits: in
+what is sensed rather than in how it is processed.
+
+A smaller group of studies combines more than one sensing modality.
+\citet{Huang2026a} pair ultrasonic thickness measurement with field-signature
+sensing and an artificial neural network on buried pipelines, and
+\citet{Haitz2022} fuses industrial RGB imagery with laser triangulation range and
+intensity on metal barrels, constructing a five-channel feature space.
+Table~\ref{tab:corrosion-detection} summarizes the detection studies reviewed.
+
+\begin{table}[htbp]
+\centering
+\caption{Summary of corrosion detection studies reviewed.}
+\label{tab:corrosion-detection}
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{@{}X X X X l@{}}
+\toprule
+\textbf{Sensing modality} & \textbf{Method and performance} & \textbf{Severity reported} & \textbf{Structure} & \textbf{Ref.} \\
+\midrule
+RGB & VGG16 with squeeze-and-excitation and XGBoost head & 1.5\% to over 6.0\% of area & Gas transmission pipelines & \citep{Alvani2026} \\
+RGB & Filtering with Chan--Vese active contour; 96.52\% segmentation accuracy & --- & Ships and naval vessels & \citep{Imran2025} \\
+RGB & U-Net, BiLSTM and DFE-NET; F1 0.8319 & --- & Marine vessel hulls & \citep{Yu2022} \\
+RGB & AlexNet with overlap-scanning sliding window; 98.9\% patch classification accuracy & --- & Hull structural plates & \citep{Yao2019} \\
+GPR B-scan & YOLOv11 & Four ordinal levels & Reinforced concrete slabs & \citep{Bui2026} \\
+RGB & Bayesian HRNetV2; F1 0.89 & --- & Steel industrial structures & \citep{Nash2022} \\
+Cold thermography & Dynamic time warping & Metal loss up to 50\% of wall thickness & Mild carbon steel & \citep{Doshvarpassand2022} \\
+Hyperspectral & Support vector machine; 93.2\% & --- & ASTM A572 structural steel & \citep{Lavadiya2022} \\
+RGB and laser profilometry & Random forest on a 5D feature space; 0.97 & --- & Metal cylindrical barrels & \citep{Haitz2022} \\
+\bottomrule
+\end{tabularx}
+
+\vspace{4pt}
+\scriptsize Dashes denote information not reported by the study.
+\end{table}
+
+Three findings follow. First, multi-sensor fusion is rare in this literature.
+Of the 25 studies reviewed across this section and
+Section~\ref{sec:lr-corrosion}, 7 perform no detection study at all, and of the
+18 that do, only 3 combine more than one sensing modality
+\citep{Huang2026a,Ding2025,Haitz2022}, and 2 of those 3
+combine more than one imaging or ranging sensor
+\citep{Ding2025,Haitz2022}. A fourth,
+\citet{Egodawela2025}, pairs multispectral imaging with a contact thermocouple,
+which is a point probe rather than an imaging channel and is counted here as
+single-sensor imaging.
+
+Second, one study already does what the rest do not, and it warrants close
+attention. \citet{Ding2025} is a conference paper and sits outside the peer
+reviewed journal corpus this review tabulates; it is therefore cited as evidence
+that a thing has been attempted, never as a comparator and never as support for
+the gap this chapter argues. It combines ultrasonic guided waves,
+visible imagery and LiDAR point clouds on aerial ground wires, and fuses them
+inside the model: three parallel encoders, intra-modal self-attention within each
+stream and multi-head cross-attention between them, trained jointly for corrosion
+classification and severity grading on a purpose-built registered dataset. It
+also reports a leave-one-out modality ablation, the only one in the corrosion
+literature reviewed here, finding that removing the ultrasonic channel costs
+9.2\% accuracy, the visible channel 3.6\% and the point cloud 2.9\%. Learned
+trimodal fusion for a corrosion decision is therefore not unattempted. What
+constrains it is the sensing: the ultrasonic transducers are mounted directly on
+the conductor surface, so the system as a whole is contact-based and inherits
+the access limitation that optical inspection exists to remove. Severity is
+reported as an ordinal class rather than a physical measurement. The two
+remaining multi-sensor systems are applied to buried pipelines
+\citep{Huang2026a} and to a barrel on a rotary-table inspection rig
+\citep{Haitz2022}: industrial assets in both cases, and in the second a bench
+rather than a structure in service.
+
+Third, none of them recovers a depth measurement by fusion. Depth is recovered
+in this literature, but by single modalities and under controlled conditions.
+\citet{Doshvarpassand2022} matches thermal contrast against an analytic model for
+losses up to half the wall thickness under cryogenic stimulation, and \citet{Egodawela2025} regresses metal
+loss from multi-spectral imaging with a reported depth error of 0.2829 mm,
+demonstrating that depth need not come from a geometric sensor. Neither, however, operates at the standoff or under
+the motion that field inspection of a large structure imposes.
+
+A gap therefore exists for contactless multi-sensor fusion capable of recovering
+pitting depth in the field. No journal study reviewed here fuses more than two
+sensing modalities for a corrosion decision, and none recovers a depth
+measurement from a fused representation at all. The single system that carries a
+ranging channel alongside imagery for corrosion requires surface-mounted
+transducers on a third \citep{Ding2025}, and it reports a grade rather than a
+measurement.
+
+\section{Sensing Modalities for Corrosion Assessment}
+\label{sec:lr-modalities}
+
+Section~\ref{sec:lr-corrosion-detection} established that current detection
+methods recover appearance and affected area but rarely depth. This section examines what each
+candidate sensing modality can physically measure, since the case for combining
+them rests on their measuring different things rather than on the number of
+sensors carried.
+
+\subsection{Visible Imaging}
+
+A color camera records light reflected from a surface, encoding the color and
+texture that distinguish oxidized metal from sound metal. Its advantages are
+practical: sensors are inexpensive and available at high resolution, acquisition
+is fast and contactless, and a mature ecosystem of pre-trained architectures
+transfers readily to the task \citep{Yao2019,Nash2022}. The great majority of the
+corrosion detection literature reviewed in
+Section~\ref{sec:lr-corrosion-detection} rests on this modality alone
+\citep{Alvani2026,Imran2025,Yu2022}.
+
+Its limitations are physical rather than algorithmic, and three recur.
+Corrosion products, coating discoloration, surface staining and shadow present
+similar color and texture, so a model trained on appearance cannot reliably
+separate them; \citet{Lavadiya2022} identifies this visual ambiguity explicitly, and
+\citet{Liu2026} attribute the residual segmentation error of loss functions
+operating on color and texture alone to precisely these confounders. Second, a
+single image carries no depth information \citep{Cheng2025}, so severity can be
+expressed only as the proportion of surface area affected; \citet{Alvani2026} states
+the consequence directly, noting that image-based severity cannot measure
+material loss or corrosion depth. \citet{Egodawela2025} puts the difficulty in
+its general form, that grading metal loss from imaging requires depth to be
+inferred from two-dimensional data rather than measured, which is the same
+distinction Section~\ref{sec:lr-geometric} draws between a depth that is
+reconstructed and a depth that is ranged. Third, corrosion progressing beneath an intact
+coating produces no reflected-light signature at all \citep{Lim2021}.
+
+\subsection{Infrared Thermography}
+
+Thermography measures emitted infrared radiation, and therefore surface
+temperature. \citet{Egodawela2025} judges it the most successful imaging
+technique presently available for quantifying metal loss, on the grounds that
+visible imaging is confined to surface-level defects while terahertz imaging
+struggles against the reflectivity of metals, leaving heat conduction as the
+property that carries subsurface information to a camera. Its relevance to corrosion is indirect but powerful: subsurface
+material loss alters the local heat capacity and conduction path, so a defect
+below an intact surface produces a thermal contrast even where it produces no
+visual one. The governing physics is diffusion. Heat propagates into the
+material according to the Fourier equation, at a rate set by the thermal
+diffusivity $\alpha = k/\rho C$, and a subsurface cavity disrupts that
+propagation, so the disruption surfaces as a temperature anomaly over the
+defect \citep{Doshvarpassand2022}. Passive thermography relies on ambient
+thermal gradients, while active thermography applies controlled excitation and
+observes the transient response \citep{Elizalde2023}. The same diffusion that
+carries the signal outward is what limits how deep it can be read from, which
+the limitations below return to.
+
+The evidence that this recovers what visible imaging cannot is direct.
+\citet{Lim2021} fuses visible and active infrared images with a Faster R-CNN on
+steel bridges and detect subsurface corrosion invisible in the color channel,
+using halogen lamps as the heat source. \citet{Doshvarpassand2022} estimate defect depth from cold-stimulated
+thermography on flat-bottom holes drilled into the hidden face of a mild steel
+plate, and report the potential to predict metal loss of up to 50\% of wall
+thickness. \citet{Elizalde2023} records corroded galvanized and stainless steel sheets
+peaking at 63.0 and 65.3\,\si{\degreeCelsius} against 69.7 and
+70.6\,\si{\degreeCelsius} for sound sheets, a separation of roughly 5 to
+7\,\si{\degreeCelsius} in which the corroded surface is the cooler one, and
+notes that this sign is the reverse of what the thermography literature
+generally reports for hidden defects.
+
+Two limitations qualify this, and the first is more
+severe than it is usually presented. Every result above was obtained under
+deliberate thermal excitation: \citet{Lim2021} uses halogen lamps,
+\citet{Elizalde2023} two quartz-tube heaters totalling 2000\,W positioned
+0.70\,m from the specimen with the camera at 1\,m, and
+\citet{Doshvarpassand2022} an aerosol cryogen delivered from a rail-guided
+carrier passing over the surface, an inversion of the usual arrangement that its
+authors note is rarely reported against the prevailing use of heating. No reviewed study recovers subsurface
+corrosion in steel passively. \citet{Yamashita2025} does work passively, but on
+asphalt pavement over a concrete deck, at night to avoid solar loading, and reports that damage
+progressing in the depth direction produces little surface temperature change.
+The excitation arrangement therefore does not scale to inspection standoff on
+the evidence available, and whether a passive regime can substitute is an open
+question rather than an established capability. Excitation also changes what the
+measurement is. In the active regime the camera records the temporal as well as
+the spatial evolution of surface temperature, from the moment of stimulation
+until the surface settles back to ambient \citep{Doshvarpassand2022}, so the
+thermal channel is a sequence keyed to a stimulation event rather than a frame
+that can be taken alongside a photograph. Bringing it into correspondence with
+the other modalities is therefore a question of timing as well as of geometry,
+and Chapter~\ref{ch:methodology} has to answer both. The second limitation follows from the
+diffusion mechanism itself: thermal contrast attenuates with defect depth, since
+the signal from a deeper cavity reaches the surface later and weaker.
+\citet{Doshvarpassand2022}
+reports accuracy falling as the defect aspect ratio falls, and notes from the
+wider literature that depth prediction beyond half the wall thickness has barely
+been reported. Beyond these two, reflective or transparent surfaces can produce
+inaccurate thermal readings \citep{Tran2024}.
+
+\subsection{Geometric Sensing}
+\label{sec:lr-geometric}
+
+Geometric sensors measure surface shape directly, and therefore measure the
+quantity that corrosion severity is defined by. Several instruments serve this
+role and they are not interchangeable. Laser triangulation and laser
+profilometry recover fine surface relief at short, controlled standoff:
+\citet{Haitz2022} adds triangulation range and intensity as the fourth and fifth
+channels of a feature space built on a rotary table, recovering fine relief at a
+standoff the rig holds fixed. LiDAR measures range by time of flight and operates at meters rather
+than millimeters, tolerating platform motion and standoff variation that
+profilometry does not. \citet{Maru2025} fuses LiDAR points with imagery at the
+pixel level to assess section loss in steel structural components, and
+\citet{PimenteldeFigueiredo2025} builds semantic--geometric maps of industrial environments by
+combining point-cloud localization with vision-based segmentation.
+\citet{Gunatilake2021} combine stereo vision with laser profiling to map internal
+pipeline defects.
+
+A distinction matters here that the literature does not always make. Depth
+recovered by photogrammetric reconstruction or structure-from-motion is
+inferred from imagery rather than measured, and inherits the failure modes of
+the color channel it derives from; depth measured by a ranging instrument does
+not \citep{Tang2025}. A separate caution concerns access rather than
+inference. \citet{Ding2025} combines LiDAR and color imagery, both genuinely
+measured and genuinely fused, with ultrasonic transducers mounted directly on
+the conductor surface. The geometric and visible channels are contactless; the
+system is not, and it is the contact channel that carries most of the
+performance.
+
+The limitations of geometric sensing are resolution and registration. Spatial
+resolution must be sufficient to resolve a pit mouth measured in millimeters or
+smaller \citep{Qin2026,Wang2021}, and sparse point clouds also limit object
+detection \citep{Tran2024}. One reviewed study bears directly on whether a
+ranging sensor meets that requirement at inspection standoff.
+\citet{Maru2025} places a terrestrial laser scanner and a camera roughly four
+metres from 500\,mm steel plates carrying acid-etched losses of 0.5, 1, 2 and
+3\,mm, and recovers depth with a mean error of 7.8\%. Performance is depth
+dependent in the expected direction: losses of 2\,mm and deeper are recovered
+closely, while the 0.5\,mm case carries 17.2\% error, and estimates are biased
+low at every depth. This establishes that depth recovery by a ranging sensor at
+metre standoff is feasible for millimetre-scale losses and marginal below
+roughly one millimetre, on prepared specimens without corrosion product. The
+second limitation is that a point cloud must be brought into correspondence with
+the image data before joint inference is possible, a problem
+Section~\ref{sec:lr-fusion} treats in detail.
+
+\subsection{Spectral Imaging}
+
+Hyperspectral and multispectral imaging sample reflectance across many narrow
+bands, separating materials by spectral signature rather than by apparent color.
+Applied to corrosion, this addresses the ambiguity problem directly.
+\citet{Lavadiya2022} demonstrates that hyperspectral imaging eliminates visual
+ambiguity between corroded and coated surfaces and identifies corrosion sources.
+\citet{Arias2025} grade marine steel into five severity classes from VIS--NIR
+reflectance with a multilayer perceptron, and \citet{DeKerf2022} quantify corrosion
+minerals in carbon steel from SWIR bands with a random forest, reporting errors
+between 3.27\% and 13.37\%. \citet{Egodawela2025} estimates metal loss depth from
+multi-spectral imagery with a reported error of 0.2829 mm.
+
+Spectral imaging is therefore a credible alternative to thermography as the
+second modality, and the reason it is not adopted here is one of deployment
+rather than capability. A hyperspectral line scanner requires controlled
+illumination and stable standoff to produce calibrated reflectance, conditions
+that a fixed laboratory arrangement satisfies and a moving inspection platform
+does not. Thermography, by contrast, responds to subsurface material loss rather
+than surface chemistry, which is the quantity pitting demands, and imposes no
+illumination requirement. Table~\ref{tab:modalities} summarizes the comparison.
+
+\begin{table}[htbp]
+\centering
+\caption{Sensing modalities considered for corrosion assessment.}
+\label{tab:modalities}
+\scriptsize
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{@{}l X X X l@{}}
+\toprule
+\textbf{Modality} & \textbf{Quantity measured} & \textbf{Contribution} & \textbf{Limitation} & \textbf{Ref.} \\
+\midrule
+Visible & Reflected light: color and texture & Mature, inexpensive, high resolution; identifies corroded appearance & Confuses rust with stain, coating and shadow; no depth; blind beneath coatings & \citep{Alvani2026,Nash2022,Lavadiya2022,Lim2021} \\
+Thermography & Emitted infrared radiation, i.e.\ surface temperature & Reveals subsurface loss beneath an intact surface; supports depth estimation & Requires excitation for active use; contrast attenuates with depth & \citep{Lim2021,Doshvarpassand2022,Elizalde2023} \\
+Laser profilometry & Surface relief at short standoff & Fine depth and volume of individual pits & Fixed standoff, bench-mounted; poor tolerance of platform motion & \citep{Haitz2022} \\
+LiDAR & Range by time of flight & Geometry at meter standoff; tolerates motion; measures rather than infers depth & Resolution limits detection of small pits; requires registration to imagery & \citep{Maru2025,PimenteldeFigueiredo2025} \\
+Hyperspectral & Reflectance across narrow bands & Separates corroded from coated surfaces by spectral signature & Needs controlled illumination and stable standoff; high data volume & \citep{Lavadiya2022,Arias2025,DeKerf2022} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+No single modality recovers everything corrosion assessment requires. Visible
+imaging localizes the affected region but cannot say how much metal is gone;
+thermography reaches beneath the surface but needs excitation and loses
+sensitivity with depth; geometric sensing measures loss directly but at a
+resolution and registration cost; spectral imaging resolves material ambiguity
+but under conditions field inspection does not provide. The complementarity is
+the argument for combining them, and Section~\ref{sec:lr-fusion} examines how
+that combination has been attempted.
+
+\section{Multimodal Sensor Fusion}
+\label{sec:lr-fusion}
+
+Section~\ref{sec:lr-modalities} established that the candidate modalities
+measure different physical quantities and fail in different ways \citep{Tran2024}. This section
+examines how the literature combines them: at what stage the streams are joined,
+how they are brought into spatial correspondence, and what evidence exists that
+the additional modality improves performance.
+
+One point of terminology has to be settled first, because the word is used in
+two senses that do not overlap. \citet{Yao2026} surveys multimodal
+computer vision for corrosion assessment, and the modalities it ranges over are
+characterization techniques at different scales, from atomic force and scanning
+electron microscopy through optical and multispectral imaging, combined to
+understand corrosion behavior. Throughout this chapter multimodal means
+something narrower: two or more sensors of different physical type, mounted
+together and directed at the same surface during an inspection, whose outputs
+are brought into a common frame and combined for a decision about that surface.
+A survey of the first sense does not speak to the absence argued in the second.
+
+\subsection{Fusion Architectures}
+
+Fusion is conventionally classified by the stage at which streams are combined.
+Early fusion concatenates raw or lightly processed channels at the input, so a
+single backbone learns across modalities from the outset. \citet{Cao2026} builds
+a five-channel input from color, inferred depth and thermal data;
+\citet{Nooralishahi2022} aligns color, thermal and active-stereo depth at a fixed step to produce a
+point cloud carrying both color and temperature; and \citet{Maru2025} projects
+LiDAR points onto image pixels before feature extraction. Early fusion is
+economical, since one backbone is trained rather than several, but it requires
+the streams to be accurately registered beforehand, and \citet{Cao2026}
+identifies exactly this as its limitation.
+
+Intermediate fusion, in which separate encoders extract modality-specific
+features that are combined before the detection head, dominates the reviewed
+literature. Implementations differ mainly in the combination mechanism.
+Cross-attention is the most common: \citet{Wang2026b} weights each stream by how
+occluded it is, \citet{Jiang2024} pairs unimodal and cross-modal attention across
+CNN and Transformer branches, and \citet{Cheng2025} uses LiDAR depth to guide image
+features into a shared bird's-eye representation. Others fuse at multiple
+pyramid levels \citep{Tang2026} or progressively across a branch tree that
+discards redundant information \citep{Liu2025a}.
+
+Late fusion combines decisions rather than features, joining the streams after
+each has been processed independently \citep{Lin2022,Shahsavarani2024,Tran2024}. It tolerates sensor
+dropout better but forgoes cross-modal interaction during learning.
+
+The stage is not an arbitrary choice, and one study tests it directly.
+\citet{Yang2023} compares early, intermediate and late fusion of color and
+thermal imagery on the same facade defect data, reporting that the intermediate
+variant achieves high accuracy with fewer weights while the early variant
+preserves raw detail at the cost of doubled parameters. This is the only
+fusion-stage comparison in the reviewed set.
+
+\subsection{Registration and Calibration}
+
+Fusion presupposes that measurements from different sensors refer to the same
+physical point, and establishing that correspondence is the most frequently
+reported obstacle in this literature. Nine of the tabulated studies name
+alignment, calibration or registration failure among their stated limitations
+\citep{Cheng2025,Liu2025,Zhu2026,Xu2026,Cao2026,Nooralishahi2022,Shahsavarani2024,Bin2023,Yang2024},
+and the failure modes are specific: \citet{Zhu2026} reports breakdown under
+sensor offset and motion blur, \citet{Xu2026} under large offsets, and
+\citet{Nooralishahi2022} holds alignment only at the single standoff for which it was
+calibrated.
+
+The difficulty is compounded for thermal sensors, because the printed
+chessboard used for conventional camera calibration has no thermal contrast and
+is therefore invisible to an infrared detector. Two approaches follow. The first
+is targetless calibration, estimating extrinsics from scene structure rather
+than a known object: \citet{Yang2024} matches three-dimensional edges to image
+lines to calibrate thermal, RGB and LiDAR sensors without any target, and
+\citet{Tran2024} achieves the same for a 360-degree rig while the platform is
+moving. The second is to design the network to tolerate misalignment:
+\citet{Wang2024} reports salient object detection on unaligned and loosely aligned
+pairs, and \citet{Liu2025} learns correction offsets internally, though it notes
+that correcting alignment did not by itself raise detection accuracy.
+\citet{Li2024c} performs coarse-to-fine registration and merges detections at the
+head. Five studies resolve registration internally in one of these ways
+\citep{Yang2024,Tran2024,Wang2024,Liu2025,Li2024c}. Two of them,
+\citet{Yang2024} and \citet{Tran2024}, do so across exactly the three
+modalities of interest here, which establishes that the correspondence is
+recoverable; both, however, treat calibration as the end product and neither
+carries the aligned streams into a detection model. Registration for this
+sensor set is therefore a solved problem in robotics and an unused one in
+inspection.
+
+\subsection{Evidence of Modality Contribution}
+
+Fusion is reported to outperform single-sensor baselines throughout this
+literature, but the comparison is usually between a fused model and one
+unimodal model rather than across the sensor set, so the contribution of an
+individual modality is rarely isolated, though the exceptions are more numerous
+than the field's own framing suggests. \citet{Hou2024}, an infrared--visible
+detection study drawn on here for its ablation design rather than as a corrosion
+comparator, trains the same detector on each modality separately and on their
+fusion. \citet{Haitz2022} compares
+seven channel combinations and finds the differences between them not highly
+significant. \citet{Maru2025} compares the fused input against color alone and
+reports a 15.1\% gain in intersection over union, though without a
+geometry-only arm and without separating range from laser intensity.
+\citet{Rashidi2026} runs six configurations and concludes that no single
+modality suffices. \citet{Ding2025}, discussed in
+Section~\ref{sec:lr-corrosion-detection}, reports the only leave-one-out
+ablation on a corrosion task. What none of them isolates is the contribution of
+a ranging channel by itself.
+
+Within corrosion specifically the evidence is thinner, and it is not uniformly
+favorable. \citet{Haitz2022} evaluates a five-channel feature space combining
+color with laser triangulation range and intensity against a three-channel color
+baseline, and reports the outcome as only slightly superior, noting that the
+margins are not highly significant and closing with the question of whether the
+active sensor is worth the fusion complexity it requires. That question is the
+one Objective~3 of this research is designed to answer, and it has not been
+answered since.
+
+The counter-evidence must be stated alongside it. \citet{Wu2025} fuses color and
+LiDAR with an inferred near-infrared channel for pedestrian detection and reports
+the fused model weaker than single-sensor alternatives in both simple and
+difficult scenes, and \citet{Liu2025} finds that correcting cross-modal
+alignment did not by itself raise detection accuracy. Adding a modality is
+therefore not automatically beneficial, which is precisely why the contribution
+has to be measured rather than assumed.
+
+Against this, \citet{Lim2021} fuses color with active infrared and detects
+subsurface corrosion that the color channel cannot represent at all. This
+establishes that a second modality can contribute something categorical rather
+than incremental, although the study does not quantify the contribution as a
+performance delta.
+
+Table~\ref{tab:fusion} summarizes the fusion studies reviewed.
+
+\begingroup
+\scriptsize
+\renewcommand{\arraystretch}{1.1}
+\begin{xltabular}{\textwidth}{@{}p{2.5cm} X X l@{}}
+\caption{Summary of multimodal fusion studies reviewed. Modalities in bold denote the
+combination proposed in this research; inferred channels are those derived from imagery
+rather than measured by a dedicated sensor.}\label{tab:fusion}\\
+\toprule
+\textbf{Modalities} & \textbf{Method and fusion stage} & \textbf{Application and reported limitation} & \textbf{Ref.} \\
+\midrule
+\endfirsthead
+\multicolumn{4}{@{}l}{\footnotesize\itshape Table~\thetable\ (continued)}\\
+\toprule
+\textbf{Modalities} & \textbf{Method and fusion stage} & \textbf{Application and reported limitation} & \textbf{Ref.} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{4}{r@{}}{\footnotesize\itshape Continued on next page}\\
+\endfoot
+\bottomrule
+\endlastfoot
+RGB and thermal & SeAFusion with YOLOv7, intermediate & Vehicles and pedestrians. Thresholds set by hand; single dataset & \citep{Byeon2026} \\
+RGB and depth scan & WideResNet-50 and DGCNN branches, gated intermediate & Defects in 3D shapes. Cannot run on one sensor; synthetic and lab data & \citep{Asad2026} \\
+RGB and laser profiling & Color projected onto scanned points & Pipeline internal defects. Errors on dark surfaces; roll about the pipe axis undetectable & \citep{Gunatilake2021} \\
+RGB and LiDAR & Swin-Tiny with LiDAR guidance, bird's-eye view & 3D object detection. Heavy; requires exact calibration; urban only & \citep{Cheng2025} \\
+RGB and LiDAR & ResNet or ConvNeXt with FSD branch, intermediate & 3D object detection. Handles only two modalities & \citep{Zhang2026d} \\
+RGB and LiDAR & ResNet-50 with U-Net, point-to-pixel early fusion; fused vs RGB-only compared & Section loss in steel components at 4 m standoff. Laboratory only; no real corrosion texture & \citep{Maru2025} \\
+RGB and LiDAR & U-Net with ResNet-34, late projection onto the point cloud & Corrosion on metal structures. Noisy; pose drift; needs good initialization & \citep{PimenteldeFigueiredo2025} \\
+RGB and LiDAR & R3LIVE, color projected onto points & Crop growth estimation. Weak on chlorophyll; no yield estimate & \citep{Tang2025} \\
+RGB and thermal & CNN and Transformer branches, intermediate and late & Vehicles and pedestrians. Doubles inference time and parameter count & \citep{Jiang2024} \\
+RGB and thermal & Dynamic interaction module, intermediate & Salient objects. Structure and efficiency unresolved & \citep{Gao2026} \\
+RGB and thermal & DAFM two-way cross-attention, intermediate & Pedestrians and vehicles. Too heavy for low-power hardware; fails on weak thermal & \citep{Wang2026b} \\
+RGB and thermal & AFFNet with LFCMF at pyramid levels & Vehicles in drone imagery. Misses partly visible objects & \citep{Tang2026} \\
+RGB and thermal & Tree-structured multibranch progressive, intermediate & Aerial targets. Weak on small objects & \citep{Liu2025a} \\
+RGB and thermal & CMAM and THAM alignment, intermediate and head & Vehicles and people. Corrects alignment without raising accuracy & \citep{Liu2025} \\
+RGB and thermal & YOLOv3 and SSD, late & Pedestrians and vehicles. Training pairs matched by hand & \citep{Lin2022} \\
+RGB and thermal & Separate encoder branches, intermediate & Detection and segmentation. Loses texture where sensors overlap & \citep{Lin2026} \\
+RGB and thermal & ResNet-50 backbones, intermediate & Pedestrians, vehicles, traffic lights. Breaks under sensor offset or motion blur & \citep{Zhu2026} \\
+RGB and thermal & ResNet branches, intermediate & Objects in complex scenes. Fails when RGB is too dark for region masks & \citep{Xiao2026} \\
+RGB and thermal & Spectral-Enhanced Transformer, intermediate & Surveillance and driving imagery. Breaks under large offset; too slow for live use & \citep{Xu2026} \\
+RGB and thermal & Dense residual backbone, spatial and frequency branches & Detection and segmentation. Large and slow & \citep{Chen2026a} \\
+RGB and thermal & Transformer and reconstructed convolution, intermediate & Objects in low light. Too complex for edge devices & \citep{An2026} \\
+RGB and thermal & Diffusion backbone with twin guidance & Scene understanding. Slow; untested on video & \citep{Zhou2026} \\
+RGB and active thermal & Faster R-CNN, input-level fusion & \textbf{Corrosion on steel bridges}. Requires halogen lamps as heat source & \citep{Lim2021} \\
+RGB and thermal & Shift and scale estimation, early & Image registration. Breaks under motion blur; cannot fix viewpoint change & \citep{Bin2023} \\
+RGB and thermal & VGG-like encoder and graph network, late & Defect mapping on structures. Accuracy depends on the sensor pair & \citep{Shahsavarani2024} \\
+RGB and thermal & SACNet two-way attention, intermediate & Salient objects. Fails on hollow objects and under strong light & \citep{Wang2024} \\
+RGB and thermal & Modified U-Net, early, intermediate and late compared & Loose and missing tiles. Long training; doubled weights in some variants & \citep{Yang2023} \\
+RGB and thermal & Coarse-to-fine alignment, boxes merged at head & Industrial part defects. Struggles on irregular shapes & \citep{Li2024c} \\
+Thermal and GPR & MobileNetV3 branches, bidirectional cross-modal attention and gated fusion, intermediate & Delamination in concrete decks. Cannot produce an output where one modality lacks coverage & \citep{Rashidi2026} \\
+Thermal and laser profiling & Rule-based link of temperature to surface shape; authors' own term & Damage on concrete bridge decks. Passive, so night imaging; unusable for days after rain & \citep{Yamashita2025} \\
+RGB, LiDAR and inferred NIR & YOLOv5 and PointPillars, early and late & Pedestrians in low light. Weaker than alternatives in simple and hard scenes & \citep{Wu2025} \\
+RGB, inferred depth and thermal & GLS-YOLOv8n, five-channel early fusion & Mangoes in orchards. Requires the three views aligned by hand & \citep{Cao2026} \\
+RGB, thermal and active-stereo depth & Fixed-step alignment, early & Inspection of industrial components. Alignment holds at one standoff only & \citep{Nooralishahi2022} \\
+RGB, thermal and NIR & ConvNeXt backbone, intermediate & Image fusion for detection. Raises contrast but loses fine gray detail & \citep{Laidouni2025} \\
+RGB, thermal and multispectral & Stitched aerial maps compared layer by layer & Defects on building facades. Flights restricted to dry season by the platform; thermal and multispectral resolution too coarse for microcracks & \citep{Guedes2025} \\
+\textbf{RGB, thermal and LiDAR} & Swin Transformers, bird's-eye view & 3D road targets. Overfits at close range; streaks where views overlap & \citep{Tran2025} \\
+\textbf{RGB, thermal and LiDAR} & 3D edges matched to image lines & Sensor calibration for robots. Needs clear edges; blurred thermal outlines degrade it & \citep{Yang2024} \\
+\textbf{RGB, thermal and LiDAR} & SuperPoint and MobileNetV3 branches, late & 360-degree sensor calibration. Fails on heat-absorbing or scattering surfaces & \citep{Tran2024} \\
+\end{xltabular}
+\endgroup
+
+Three findings follow from the table. First, multimodal fusion is mature in
+autonomous driving, remote sensing and surveillance, and largely absent from
+defect detection. Color paired with thermal is the default configuration,
+adopted in 21 of the 38 studies tabulated once active thermography is included,
+which leaves depth information absent across most of the field.
+
+Second, only 3 of the 38 sense color, thermal and LiDAR concurrently
+\citep{Tran2025,Yang2024,Tran2024}, and none of the three performs damage assessment: two are
+calibration studies \citep{Yang2024,Tran2024} and the third detects road targets for
+autonomous driving \citep{Tran2025}. Where a third channel does appear in an
+inspection context it is either inferred from imagery \citep{Cao2026} or
+measured by a short-range active-stereo sensor whose alignment holds at one
+standoff only \citep{Nooralishahi2022}, rather than by a ranging instrument
+that tolerates the standoff and motion of field inspection.
+
+Third, only two of the tabulated studies address corrosion at all.
+\citet{Lim2021} fuses color with active thermal imagery on steel bridges, and
+\citet{PimenteldeFigueiredo2025} combines color with LiDAR to map corrosion in industrial
+environments. Neither carries all three modalities, and no study in this set
+both senses three modalities and learns a joint representation from them for a
+corrosion decision.
+
+\section{Learning Architectures for Detection and Fusion}
+\label{sec:lr-architectures}
+
+Section~\ref{sec:lr-fusion} examined how streams are combined. That combination
+is always hosted inside a detection architecture, and the architecture bounds
+what a fused representation can express. This section reviews the detectors,
+backbones and analytical tools the reviewed literature employs, in order to
+establish which of them are available to this research and what they have so far
+been asked to do.
+
+\subsection{Detection Architectures}
+
+Detection architectures divide into two families. Two-stage detectors generate
+region proposals and then classify them, and the Faster R-CNN family remains in
+active use for this purpose \citep{Wu2026,Zheng2023,Gong2022}. \citet{Wu2026}
+reduces false detections through interval normalization weighting while still
+missing occluded objects.
+One-stage detectors regress boxes directly and dominate recent work
+\citep{Han2022,Tao2021,Sun2023,Liu2026a,Wang2026a,Sun2022,Li2024b,Morita2024,Zhao2026}. \citet{Srivastava2021} compares the two families on identical
+data and finds the one-stage YOLOv3 both fastest and strongest overall, but
+weakest on small targets and under scale change. Anchor-free variants built on
+FCOS occupy a third position \citep{Chen2025,Zhang2024}, and transformer and foundation-model
+adaptations are beginning to appear \citep{Zhang2026c,Mbietieu2025}.
+
+Two properties of this literature bear directly on the present work. The first
+is that small objects remain the standing limitation: 6 of the tabulated
+studies are directed at small or multi-scale targets
+\citep{Tao2021,Chen2025,Jiang2025,Zhang2024,Wang2026a,Han2022}, and the problem
+is reported as unresolved even where it is the stated objective:
+\citet{Tao2021} misses objects against cluttered backgrounds despite being built
+for small flying objects. The same pattern appears in the family comparison reported above: the
+detector that wins overall is the one that loses most on small targets
+\citep{Srivastava2021}. Pitting corrosion is a small-object problem, and a
+detector inherits this weakness whatever it is fed.
+The second is that detection is consistently stronger than measurement. \citet{Li2024b}
+sorts bridge-bolt corrosion into three severity classes but assigns those classes
+by hand, \citet{Zhao2026} notes that a bounding box cannot represent the outline of the
+region it encloses, and \citet{Sun2022} localizes boiler wall defects without
+quantifying them. Where measurement is attempted from imagery alone it degrades
+sharply, as \citet{Su2024} shows in reporting 99.75\% accuracy for crack detection
+alongside a coefficient of determination of 0.764 for the corresponding width
+regression.
+
+The single-sensor studies are collected in Table~\ref{tab:detection}. Of the 28
+detection studies examined, 21 employ a single sensor, and 4 of those sense
+something other than visible light \citep{Morita2024,Zhao2026,He2026,Gong2022}.
+The remaining 7 are multimodal and are tabulated with the fusion literature in
+Table~\ref{tab:fusion}.
+
+\begingroup
+\scriptsize
+\renewcommand{\arraystretch}{1.1}
+\begin{xltabular}{\textwidth}{@{}X l X X l@{}}
+\caption{Summary of single-sensor detection studies reviewed. Applications in bold denote
+metallic defect or corrosion targets.}\label{tab:detection}\\
+\toprule
+\textbf{Method} & \textbf{Data} & \textbf{Application} & \textbf{Reported limitation} & \textbf{Ref.} \\
+\midrule
+\endfirsthead
+\multicolumn{5}{@{}l}{\footnotesize\itshape Table~\thetable\ (continued)}\\
+\toprule
+\textbf{Method} & \textbf{Data} & \textbf{Application} & \textbf{Reported limitation} & \textbf{Ref.} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{5}{r@{}}{\footnotesize\itshape Continued on next page}\\
+\endfoot
+\bottomrule
+\endlastfoot
+YOLOv3, SSD and Faster R-CNN compared & RGB & Everyday object detection & Struggles with small targets and scale change & \citep{Srivastava2021} \\
+MVNet on SSD with multi-receptive field modules & RGB & Aircraft, cars and ships in remote imagery & 38.74 billion operations per image & \citep{Han2022} \\
+Faster R-CNN with interval normalization weighting & RGB & Objects in everyday scenes & Misses occluded objects & \citep{Wu2026} \\
+LSL-Net, a lightweight YOLOv4-tiny variant & RGB & Small low-altitude flying objects & Misses objects against cluttered backgrounds & \citep{Tao2021} \\
+FRLI-Net, FCOS with feature reconstruction & RGB & Tiny objects and people in remote imagery & Real-time speed untested & \citep{Chen2025} \\
+U-ShapeNet, U-shaped extraction and fusion & RGB & Small UAV targets & Feature reuse discards information & \citep{Jiang2025} \\
+Enhancement subnetwork with RetinaNet or Faster R-CNN & RGB & Objects in low light & No gain on medium-sized objects & \citep{Wu2023} \\
+MFIL-FCOS with ResNet-50 & RGB & Multi-scale remote sensing targets & Struggles on highly irregular scenes & \citep{Zhang2024} \\
+YOLOv5s with SPDA-C3 and Res-DHead & RGB & Dense aerial targets & Speed reported on high-end GPUs only & \citep{Sun2023} \\
+YOLOv8 with hybrid MobileNetV3 stages & RGB & Vehicles & Not verified on real mobile hardware & \citep{Liu2026a} \\
+ShipFPN, ResNet with spectral convolutions & RGB & Maritime vessels in satellite imagery & Cost grows with search area & \citep{Mbietieu2025} \\
+Faster R-CNN with FaceNet and DBSCAN clustering & RGB & Strawberries and flowers from multiple views & Long pipeline with many stages & \citep{Zheng2023} \\
+MCFAD-YOLO, YOLOv11s with DS-PAN & RGB & Small remote sensing targets & Slower than standard lightweight YOLO models & \citep{Wang2026a} \\
+Qwen2.5-Omni with adaptive transformer tuning & RGB & Military targets & Little variety of real environments & \citep{Zhang2026c} \\
+YOLOv5 with squeeze-and-excitation attention & RGB & \textbf{Boiler inner wall defects} & Attention modules add parameters and complicate training & \citep{Sun2022} \\
+DCGAN augmentation with YOLOv5-SE & RGB & \textbf{Corroded bridge bolts} & Severity labeled by hand; no progression over time & \citep{Li2024b} \\
+Bent identity CNN with fine-tuning & RGB & Aerial remote sensing targets & Long pipeline requiring complex segmentation & \citep{Lalitha2022} \\
+SSD and YOLOv8 & CT & Midfacial fractures & Single hospital, limited variety & \citep{Morita2024} \\
+YOLOv8-LSK with SAHI and MPDIoU loss & Radar & Oil spills & Boxes cannot map the spill outline & \citep{Zhao2026} \\
+SonarDeNet with shadow-prior and kernel attention & Sonar & Underwater targets & Does not model acoustic reverberation & \citep{He2026} \\
+Domain-adaptive Faster R-CNN with FPN & X-ray & Voids in spacecraft composites & Requires labels in both source and target domains & \citep{Gong2022} \\
+\end{xltabular}
+\endgroup
+
+\subsection{Backbones and Transfer Learning}
+
+Convolutional backbones remain the default feature extractor across this
+literature, with transformers appearing as an auxiliary branch, an ensemble
+member or a comparison baseline rather than as a replacement
+\citep{Song2024,Gao2023,Zhang2026b,Bechis2026,Yamaguchi2024,Chowdhury2026,Su2024,Kharyuk2026}. Lightweight and mobile backbones are adopted
+where inference cost matters \citep{Liu2026a,Mirzaei2025}, and residual or dense families
+elsewhere \citep{Zhang2024,Yamaguchi2024,Su2024}.
+
+Transfer learning is the standard remedy for limited annotation. \citet{Su2024}
+fine-tunes ImageNet-pretrained VGG-16 and MobileNet and then reuses them as fixed
+feature extractors, reporting faster convergence and higher accuracy than
+training from scratch; \citet{Gong2022} transfers across domains to detect defects from
+few samples; and \citet{Zhang2026c} adapts a pretrained multimodal model through a small
+task-specific head. This matters here because a trimodal corrosion dataset of the
+scale conventionally required does not exist, a point developed in
+Section~\ref{sec:lr-datasets}.
+
+Two studies in this group carry structural lessons for fusion. \citet{Chowdhury2026} compares
+early, intermediate and late fusion within a single architecture and finds early
+fusion strongest, then distills the result to cut computation by 60\%, although
+its second stream is a tabular record rather than a sensor. \citet{Zhang2026b} weights
+modalities by attention inside a YOLOv11 detector on visible and thermal pavement
+imagery, and is the only study in this group to use two physically distinct
+imaging sensors; it requires the pairs to be aligned in advance and loses 20
+accuracy points when moved from its own data to a public benchmark.
+
+\subsection{Interpretability and Label-Efficient Learning}
+
+Two capabilities this research requires are established but have not been applied
+to fused sensing. The first is attribution. \citet{Moradi2024} explains detector output by
+hierarchical random masking without access to model internals, and \citet{Persiya2025}
+attributes each input feature through SHAP values, so the contribution of an
+individual channel can in principle be measured rather than asserted. The second
+is learning without dense labels. \citet{Phannakham2026} grades corrosion-induced deterioration
+from acoustic signals by unsupervised clustering of frequency-domain features,
+requiring no annotation and no expert interpreter, though the method holds only
+above roughly 4\% mass loss and was validated on five laboratory beams. \citet{Mirzaei2025}
+recovers targets a few pixels across through a deliberately shallow network, and
+\citet{Hafdaoui2026} reduces false alarms by pairing convolutional features with a support
+vector machine. Table~\ref{tab:architectures} summarizes this group.
+
+\begingroup
+\scriptsize
+\renewcommand{\arraystretch}{1.1}
+\begin{xltabular}{\textwidth}{@{}X p{2.2cm} p{2.4cm} X l@{}}
+\caption{Summary of the backbone, interpretability and label-efficiency studies reviewed.}\label{tab:architectures}\\
+\toprule
+\textbf{Method} & \textbf{Role} & \textbf{Sensing} & \textbf{Reported limitation} & \textbf{Ref.} \\
+\midrule
+\endfirsthead
+\multicolumn{5}{@{}l}{\footnotesize\itshape Table~\thetable\ (continued)}\\
+\toprule
+\textbf{Method} & \textbf{Role} & \textbf{Sensing} & \textbf{Reported limitation} & \textbf{Ref.} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{5}{r@{}}{\footnotesize\itshape Continued on next page}\\
+\endfoot
+\bottomrule
+\endlastfoot
+U-Net with a Transformer branch and attention gates & Segmentation backbone & Polarimetric channels, one SAR sensor & Slower per image; overfits on small fragmented targets & \citep{Song2024} \\
+Parallel geometric and polarization backbones & Detection backbone & Two feature streams, one radar sensor & Polarization branch partly redundant; needs full polarimetry & \citep{Gao2023} \\
+YOLOv11 with attention-based modality weighting & Detector with learned fusion & RGB and thermal & Requires pre-aligned pairs; 20-point drop across datasets & \citep{Zhang2026b} \\
+Recurrent CNN with ConvLSTM over depth maps & Sequence encoder & LiDAR only & Simulation only; accuracy varies with angular velocity & \citep{Bechis2026} \\
+VGG-16 with autoencoder and self-organizing map & Classifier with clustering & RGB & Classification rather than localization; 1--4\% gain & \citep{Yamaguchi2024} \\
+Graph convolutional network fused with a CNN at input & Early-fusion classifier & RGB and tabular records & Second stream is not a sensor; medical domain & \citep{Chowdhury2026} \\
+Pretrained VGG-16 and MobileNet fine-tuned & Transfer-learned backbone & RGB & Width regression far weaker than detection; concrete not metal & \citep{Su2024} \\
+Existing backbones probed under image perturbation & Diagnostic study & None & Expensive to run and store & \citep{Kharyuk2026} \\
+BODEM, hierarchical random masking & Post-hoc explanation & Detector-agnostic & Heavy to run; small test set; no human study & \citep{Moradi2024} \\
+Five-layer CNN with dilation preprocessing & Small-target detector & Optical microscopy & Two classes; high-contrast laboratory colloids only & \citep{Mirzaei2025} \\
+CNN features with a support vector machine & Classifier & Multispectral satellite & Reported without stated limitation & \citep{Hafdaoui2026} \\
+One-dimensional CNN with SHAP attribution & Explainable classifier & Thermal and behavioral features & 197 imbalanced samples; data cannot be shared & \citep{Persiya2025} \\
+Frequency-domain transforms with K-means++ clustering & Unsupervised grading & Acoustic & Valid only above roughly 4\% mass loss; five laboratory beams & \citep{Phannakham2026} \\
+\end{xltabular}
+\endgroup
+
+Three findings follow. First, the architectural machinery this research needs is
+mature and available, and no new detector family is required; the contribution
+must lie in what the detector is given rather than in the detector itself.
+Second, none of the 13 studies in Table~\ref{tab:architectures} trains on more
+than two physically distinct imaging sensors, and the single study that uses two
+\citep{Zhang2026b} requires the streams to be registered beforehand rather than learning the
+correspondence. Third, attribution \citep{Moradi2024,Persiya2025} and label-efficient learning
+\citep{Phannakham2026} have each been demonstrated on single-channel data, which makes the
+modality-contribution question posed in Chapter~\ref{ch:introduction}
+answerable in principle. \citet{Ding2025} has posed it across a measured
+trimodal input and answered it; no reviewed study has posed it across a
+contactless one.
+
+\section{Datasets and Evaluation Practice}
+\label{sec:lr-datasets}
+
+The architectures of Section~\ref{sec:lr-architectures} are trained on data, and
+the data available to corrosion research constrains what can be asked of them
+more tightly than the architectures do. This section examines what the reviewed
+studies train on, under what conditions that data was acquired, and how results
+are reported.
+
+\subsection{Data Availability}
+
+No dataset identified in this review pairs visible, thermal and geometric
+measurements of a corroded metal surface. Every corrosion study reviewed in
+Sections~\ref{sec:lr-corrosion} to \ref{sec:lr-modalities} acquires its own
+data, and none of those studies reports releasing it. The scarcity is not
+peculiar to the trimodal case: \citet{Nash2022} attributes the field failures
+it documents to the absence of a public corrosion dataset, so the constraint
+already binds at a single modality. The search described in
+Section~\ref{sec:lr-introduction} covers the publication databases rather than
+the data repositories, so this is a statement about the datasets accompanying
+the reviewed literature and not a proof that no such collection exists anywhere;
+a repository-level search forms part of the acquisition stage in
+Chapter~\ref{ch:methodology}.
+The three studies that do sense all three modalities concurrently
+\citep{Tran2025,Yang2024,Tran2024} release driving scenes and calibration sequences, which carry no
+corrosion and no annotation of material loss. Of the corrosion studies that fuse modalities,
+only \citet{Ding2025} exceeds two channels, and it builds its own dataset for a
+contact-based sensor set. The contactless pairs stop at two, as
+Section~\ref{sec:lr-fusion} sets out, and neither releases its data.
+
+This is the practical form of the gap set out in Section~\ref{sec:lr-gap}. A
+trimodal corrosion model cannot be trained by assembling existing public data,
+because the modality combination and the target do not co-occur in any released
+collection. Acquisition is therefore part of the problem rather than a
+precondition for it, and the methodology in Chapter~\ref{ch:methodology} has to
+answer for it.
+
+\subsection{Acquisition Conditions}
+
+Where data is collected, it is usually collected under conditions more
+favorable than the intended deployment. Laboratory specimens stand in for field
+surfaces in several of the most directly relevant studies: \citet{Maru2025} evaluates
+section loss on fabricated steel components and states that real corrosion
+texture is absent, \citet{Asad2026} trains on synthetic and laboratory shapes, and
+\citet{Phannakham2026} validates on five laboratory beams. Where field data is used, the
+acquisition window is narrow. \citet{Guedes2025} requires the dry season to fly, \citet{Yamashita2025}
+reports its method unusable for several days after rain because residual
+moisture masks the thermal signature, and \citet{Lim2021} requires halogen lamps to
+excite the surface, an arrangement that does not extend to large structures.
+The conditions inside a
+collection matter as much as the setting it was gathered in: \citet{Yao2019}
+report that their classifier generalizes poorly to images taken under weak
+illumination, blur and shade, and attribute this to those conditions being
+under-represented in the training set rather than to the architecture.
+\citet{Jiang2023} is the one reviewed study to quantify the effect rather than
+note it. Working inside dim steel box girders, it runs photography experiments
+across shooting distance, focal length and view angle, and derives an equation
+relating detected pixel area to physical area because the two are not related by
+a fixed factor. The result bears on more than data collection: it means that
+even affected area, the quantity appearance-based severity grading reports, is a
+function of where the camera stood, and it is recovered from a database of 300
+images after augmentation.
+Section~\ref{sec:lr-modalities} established that thermal contrast depends on an
+excitation source; this is where that dependence becomes a data-collection
+constraint rather than a sensing one.
+
+One pattern across these constraints bears on what fusion can be expected to
+deliver. The conditions that degrade one channel are not always independent of
+those that degrade another. Surface moisture is the clearest case: it masks the
+thermal signature for several days after rain \citep{Yamashita2025}, and wet
+surfaces are named among the conditions that obscure damage features from an
+appearance model \citep{Maharjan2025}. A fusion argument implicitly assumes that
+where one modality is compromised another is not, and shared failure modes
+weaken that assumption rather than defeat it. The consequence is for acquisition
+rather than for architecture: Chapter~\ref{ch:methodology} has to state the
+conditions under which data is and is not collected, instead of treating
+coverage of the sensor set as sufficient on its own.
+
+\subsection{Annotation and Sample Size}
+
+Annotation is the second constraint. \citet{Li2024b} assigns its three corrosion
+severity classes by hand and notes that no progression over time is captured;
+\citet{Gong2022} requires labeled examples in both the source and target domains for its
+transfer to work. Sample sizes are correspondingly small: \citet{Persiya2025} reports 197
+imbalanced samples and states that its thermal data cannot be shared, and
+\citet{Morita2024} draws from a single institution with limited variety.
+
+Two responses appear. The first is synthesis: \citet{Li2024b} generates additional
+corroded bolt images with a generative adversarial network, and \citet{Sun2022} applies
+conventional augmentation to enlarge a defect set. The second is to remove the
+labeling requirement altogether, as \citet{Phannakham2026} does by clustering frequency-domain
+features without annotation, at the cost of a detection floor near 4\% mass
+loss. Both remain untested on multimodal input.
+Table~\ref{tab:data} groups these constraints.
+
+\begin{table}[htbp]
+\centering
+\caption{Data and evaluation constraints reported across the reviewed literature.}
+\label{tab:data}
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{@{}p{3.2cm} X p{3.4cm}@{}}
+\toprule
+\textbf{Constraint} & \textbf{How it appears in the literature} & \textbf{Ref.} \\
+\midrule
+No public trimodal corrosion data & Every corrosion study reviewed acquires its own data; the three studies that sense all three modalities release driving or calibration data & \citep{Tran2025,Yang2024,Tran2024} \\
+Laboratory acquisition & Specimens, benches or simulations stand in for field surfaces, so real corrosion texture and clutter are absent & \citep{Maru2025,Asad2026,Phannakham2026,Mirzaei2025,Zhang2026c,Bechis2026} \\
+Environmental windows & Acquisition is restricted to conditions the sensor tolerates: dry season for flight, several rain-free days, or an external heat source & \citep{Guedes2025,Yamashita2025,Lim2021} \\
+Annotation cost & Severity classes assigned by hand, or labels required in both source and target domains & \citep{Li2024b,Gong2022} \\
+Small and imbalanced samples & Tens to low hundreds of examples, unevenly distributed across classes, sometimes unshareable & \citep{Persiya2025,Phannakham2026,Morita2024} \\
+Synthesis as a remedy & Generative augmentation and conventional augmentation stand in for scarce real examples & \citep{Li2024b,Sun2022} \\
+Untested generalization & Performance reported on one collection; where a second is tried, accuracy falls sharply & \citep{Zhang2026b,Morita2024,Zhang2026c} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Evaluation Practice}
+
+Detection is reported consistently. Mean average precision, intersection over
+union, precision, recall and the F1 score recur across the detection and fusion
+literature, so models can be compared against one another on a shared basis.
+Severity is not, for the reasons set out in Section~\ref{sec:lr-corrosion}:
+almost half of the corrosion studies reviewed do not quantify material loss at
+all, and those that do adopt measures that cannot be converted into one
+another. There is
+consequently a benchmark for finding corrosion and none for measuring it.
+
+Two consequences follow. First, no shared severity benchmark exists against
+which a depth-recovering method could be scored, so a study proposing one must
+also state the measure it is scored by and supply its own reference
+measurements. This research adopts maximum pit depth within a detected region,
+reported as mean absolute error against an independently instrumented
+reference, and Chapter~\ref{ch:methodology} specifies how that reference is
+obtained. In the absence of a shared benchmark the comparator is internal: the
+depth error of each ablation configuration is read against the depth error of
+the appearance-only configuration, so the geometric channel is scored on what it
+adds rather than against an external threshold that does not exist. Second, cross-dataset generalization is
+rarely tested, and the one reviewed study that tests it directly loses 20
+accuracy points when moved from its own collection to a public benchmark
+\citep{Zhang2026b}. Reported performance in this literature is therefore a statement about
+a particular collection rather than about a method, which is the reason the
+ablation proposed in Chapter~\ref{ch:introduction} is designed to hold data,
+splits and training conditions fixed while varying only the sensing
+configuration.
+
+\section{Research Gap}
+\label{sec:lr-gap}
+
+The literature reviewed in this chapter supports a chain of reasoning that
+terminates in a specific absence. Corrosion is an electrochemical process whose
+most hazardous form is localized, and its hazard depends on depth as well as extent
+\citep{Qin2026,Liu2026,Wang2021,Akhlaghi2023}. Inspection practice measures depth
+with contact instruments that require access to the surface
+\citep{Huang2026a,Yang2025}; image-based severity estimation is mostly confined
+to the area it can see \citep{Alvani2026}, and the studies that recover depth
+optically do so on prepared specimens under controlled conditions
+\citep{Egodawela2025,Doshvarpassand2022,Haitz2022,Maru2025}. \citet{Alvani2026} puts the
+division in its sharpest form: frameworks combining accurate detection,
+localization and explicit quantitative severity estimation remain scarce, and
+severity across most studies is either omitted, inferred heuristically from
+global features, or dependent on specialized hardware. Those three cases
+describe the reviewed literature closely. The fourth, a quantitative severity
+produced jointly with the detection and without a contact instrument, is the one
+this research targets, and the paper that names the division occupies the second
+case itself. No single modality closes this. Visible imaging
+records the surface and carries no depth information \citep{Cheng2025}; infrared
+thermography reveals subsurface loss but depends on thermal contrast and, in the
+one steel-corrosion demonstration reviewed, on an external heat source
+\citep{Lim2021,Doshvarpassand2022}; geometric sensing measures shape without distinguishing corrosion
+product from intact metal \citep{Maru2025,PimenteldeFigueiredo2025}.
+
+Fusion is the established answer to a limitation of this shape, and
+Section~\ref{sec:lr-fusion} finds it mature across the application domains
+represented in this review and largely absent from defect detection. The tally
+there is stark: 3 of the 38 tabulated studies sense visible, thermal and
+geometric data concurrently, and each of the 3 directs the combination at
+driving scenes or at calibrating the rig itself \citep{Tran2025,Yang2024,Tran2024}. The
+corrosion end of the same table is bimodal throughout
+\citep{Lim2021,PimenteldeFigueiredo2025}. Within the journal
+literature reviewed here the position is simpler than a tally of near-misses: no
+study fuses visible, thermal and geometric sensing for a corrosion decision at
+all, whether the combination is learned or assembled by hand, and none recovers
+a depth measurement from a fused representation.
+
+One conference paper does reach part of this. \citet{Ding2025} learns across
+three modalities for a corrosion decision and reports what each contributes. It
+lies outside the corpus this review tabulates and the gap is not argued from it;
+it is set out because a stated absence that ignores the nearest attempt is a
+weaker claim than one that names it. Two things separate it from what is
+proposed here. Its dominant modality is ultrasonic and requires transducers
+mounted on the surface, so the sensor set is not contactless and does not
+address the access constraint; and its output is an ordinal severity class
+rather than a measured depth. It therefore reaches neither the sensing nor the
+output this research targets. The absence also registers from inside the literature
+and not only in a tally taken across it: \citet{Imran2025} close a
+single-modality study by naming the fusion of optical, thermal and acoustic
+sensing as an open direction, which places the combination among the things not
+yet attempted rather than among those tried and abandoned.
+
+The absence is best stated precisely, as a property of the sensor set and the
+output rather than as a claim about the completeness of the search. No study
+reviewed here learns a joint representation across visible, thermal and
+geometric channels for a corrosion decision, and the nearest attempt outside
+that corpus reaches neither the contactless sensing nor the measured output, for
+the reasons given above. Elsewhere, where a third
+channel appears in an inspection setting it is inferred from imagery rather than
+measured by a dedicated sensor \citep{Cao2026,Nooralishahi2022}, and where three
+modalities are genuinely acquired the streams are combined at the reporting
+stage through layer-by-layer comparison \citep{Guedes2025} rather than learned
+from data. The proposition this research tests is whether
+thermography can occupy, contactlessly, the subsurface-sensing role that
+inspection practice currently fills with a probe placed on the surface
+\citep{Huang2026a,Yang2025}. The review does not settle this.
+Every steel-corrosion thermography result surveyed in
+Section~\ref{sec:lr-modalities} is excited rather than passive
+\citep{Lim2021,Doshvarpassand2022,Elizalde2023}, contrast attenuates with
+defect depth, and the excitation arrangement that \citet{Lim2021} uses does not
+extend to inspection standoff. The excitation regime is therefore a
+methodological question this research must answer rather than a property it can
+assume, and it is treated as such in Chapter~\ref{ch:methodology}. Two distinctions matter. The first is access.
+Section~\ref{sec:lr-corrosion-detection} established that the regions most
+exposed to attack are frequently the least reachable, so a method requiring a
+probe to be placed on the surface inherits the constraint that optical
+inspection exists to remove; a contactless set can be carried past a structure
+rather than applied to it. The second is that a fixed rule cannot represent the
+interaction this problem turns on, namely that a region is
+corroded when a discoloration, a thermal anomaly and a depression coincide, and
+that the evidence from each channel is conditional on the other two.
+
+Three obstacles explain the absence, and each is documented above. The first is
+spatial correspondence. Section~\ref{sec:lr-fusion} found 9 of the tabulated
+fusion studies naming alignment, calibration or registration failure among their
+limitations, and the difficulty is compounded for thermal sensors because a
+printed calibration target has no thermal contrast \citep{Yang2024}. Two studies
+do calibrate all three modalities without a target \citep{Yang2024,Tran2024}, so
+the correspondence is recoverable; neither carries the aligned streams forward
+into a detection model, and that is where the gap lies rather than in the
+calibration itself. The second is
+data: no released collection pairs the three modalities with a corroded metal
+surface, so acquisition is part of the problem rather than a precondition for it
+(Section~\ref{sec:lr-datasets}). The third is evidence: fusion is usually compared against a
+single unimodal baseline rather than across the sensor set, so the contribution
+of an individual modality is asserted rather than measured. Four studies in the
+reviewed corpus are exceptions
+\citep{Hou2024,Haitz2022,Maru2025,Rashidi2026}, and none of them isolates a
+ranging channel on a corrosion task. The only corrosion study to vary a sensor
+set across three modalities is \citet{Ding2025}, outside that corpus, where the
+geometric channel accounts for 2.9\% of classification accuracy against 9.2\%
+for the contact ultrasonic channel. The figure does not transfer: the decision
+there is an ordinal class rather than a depth measurement, and the geometric
+channel is not the only source of the quantity being predicted. It is reason to
+treat the contribution of a ranging sensor as something to be measured rather
+than assumed, which is what Objective~3 does.
+
+What the literature does not lack is machinery. Section~\ref{sec:lr-architectures}
+establishes that detectors, convolutional backbones, transfer learning,
+attribution and label-efficient training are all mature and available
+\citep{Srivastava2021,Su2024,Moradi2024,Phannakham2026}. The contribution this research proposes therefore lies not in
+a new architecture but in what the architecture is given and in what is then
+measured: a registration pipeline that brings visible, thermal and geometric
+measurements of a metal surface into a common frame; a fusion-based detector
+that learns a joint representation from the aligned result and reports, for each
+detection, the maximum pit depth within it; and an ablation that isolates each
+modality's contribution to both outputs under fixed data, splits and training
+conditions.
+
+The depth output changes what the ablation is asking.
+Section~\ref{sec:lr-corrosion} established that depth matters to the hazard alongside extent while the
+surface understates it, and Section~\ref{sec:lr-corrosion-detection} that
+image-based severity estimation is routinely confined to affected area
+\citep{Alvani2026}. That confinement is a convention rather than a
+physical limit, but the evidence that appearance can replace range is weaker
+than it first appears. \citet{Egodawela2025} regresses depth to an RMSE of
+0.2829~mm from multispectral reflectance, and is the figure most often cited for
+appearance-based depth; the defects are machined flat-bottom holes drilled into
+the face the camera observes, so the quantity recovered is the geometry of an
+open cavity rather than loss beneath an intact surface, and acquisition is gated
+by a thermocouple in contact with the specimen.
+\citet{Doshvarpassand2022} matches thermal contrast curves against an analytic
+model for defects machined into the hidden face, which is genuinely subsurface,
+but reports no error figure and states that accuracy falls as the defect
+aspect ratio falls. Neither is a like-for-like baseline for a camera viewing a
+corroded surface. The appearance-only arm of the ablation is therefore a
+necessary control rather than a strong competitor, and the literature does not
+establish how well it will perform. The
+question Objective~3 puts to the geometric channel is therefore whether direct
+range measurement improves on what appearance alone already achieves, by a
+margin that justifies carrying the sensor. A negative answer is a reportable
+result. These are the three objectives stated in
+Chapter~\ref{ch:introduction}, and the methodology in
+Chapter~\ref{ch:methodology} sets out how each is to be met.

@@ -1,0 +1,497 @@
+\chapter[METHODOLOGY]{Methodology}
+\label{ch:methodology}
+
+\section{Research Design}
+\label{sec:research-design}
+
+This research is quantitative and experimental. Its hypothesis, stated in
+Section~\ref{sec:problem-statement}, is that fusing RGB, thermal and LiDAR data
+detects corrosion more reliably than any one of these sensors alone. That is a
+claim about measurable performance, so it is tested by a controlled comparison:
+a set of detectors that differ only in the sensor data they receive, trained and
+evaluated under identical conditions, with the metrics and the decision rule
+fixed before any model is trained.
+
+The three objectives form a chain. Objective~1 produces the registered trimodal
+data without which no fused model can be trained. Objective~2 produces the
+detector that consumes those data and the per-region measurements of corroded
+area and metal loss. Objective~3 is the comparison itself. It is the only one of
+the three whose outcome is open: a finding that a sensor adds nothing to
+detection is a valid answer to Research Question~3, and the protocol in
+Section~\ref{sec:ablation} is written so that such a finding would be reported.
+
+Two design rules follow from Chapter~\ref{ch:literature-review} and constrain
+everything downstream. First, every channel in the fused input comes from a
+physical sensor. A channel computed from another channel, such as the texture
+map fused with RGB in \citet{Mao2026}, is not a second sensor and is not treated
+as one. Second, fusion takes place at the input. Early fusion was the best level
+in both reviewed studies that compare fusion levels directly
+\citep{Yang2023,Mao2026}, it has been used for corrosion with real sensors
+\citep{Lim2021,Maru2025}, and it keeps the ablation clean, because every
+configuration uses the same network and only the input channels change. Its
+cost is that the sensors must be registered at the pixel level, which is why
+registration is an objective in its own right.
+
+\section{Proposed Framework}
+\label{sec:framework}
+
+Figure~\ref{fig:framework} shows the proposed framework. The RGB image (three
+channels), the thermal image (one channel) and a depth image projected from the
+LiDAR point cloud (one channel) are registered to a common view and stacked into
+a single five-channel image. One YOLO11 detector \citep{Ultralytics2023} reads
+this image and places a bounding box around each corroded region. The LiDAR data
+inside each box are then used to measure the corroded area in real units and
+the metal loss relative to the surrounding surface.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  scale=1.2, transform shape,
+  font=\small,
+  box/.style={draw, thick, rounded corners=2pt, align=center, minimum height=1.0cm, inner sep=4pt, fill=white},
+  inp/.style={box, minimum width=2.6cm, fill=blue!6},
+  core/.style={box, minimum width=2.7cm, fill=blue!60!black, text=white},
+  outp/.style={box, minimum width=2.9cm, fill=orange!12},
+  arr/.style={-{Stealth[length=2.2mm]}, thick, blue!50!black}
+]
+  \node[inp] (rgb)  at (0, 1.6)  {RGB image\\\footnotesize 3 channels};
+  \node[inp] (th)   at (0, 0)    {Thermal image\\\footnotesize 1 channel};
+  \node[inp] (li)   at (0,-1.6)  {LiDAR point cloud\\\footnotesize projected to depth};
+  \node[box, minimum width=2.4cm, fill=yellow!15] (reg) at (3.35,0) {Registration\\\footnotesize Objective 1};
+  \node[core] (ef)  at (6.45,0)  {Early fusion\\\footnotesize 5-channel image};
+  \node[core] (yolo) at (6.45,-2.2) {YOLO11 detector\\\footnotesize pretrained};
+  \node[outp] (bb)  at (10.4, 0.7) {Bounding boxes\\\footnotesize corroded regions};
+  \node[outp] (am)  at (10.4,-2.2) {Area and metal loss\\\footnotesize per box, from LiDAR};
+  \draw[arr] (rgb.east) -- ++(0.35,0) |- (reg.west);
+  \draw[arr] (th.east) -- (reg.west);
+  \draw[arr] (li.east) -- ++(0.35,0) |- (reg.west);
+  \draw[arr] (reg.east) -- (ef.west);
+  \draw[arr] (ef.south) -- (yolo.north);
+  \draw[arr] (yolo.east) -- ++(0.45,0) |- (bb.west);
+  \draw[arr] (bb.south) -- (am.north);
+  \draw[arr, dashed] (li.south) -- ++(0,-1.25) -| ([xshift=-6mm]am.south);
+\end{tikzpicture}
+\caption{Proposed framework. The registered RGB, thermal and LiDAR depth images
+are stacked into one five-channel input to a single YOLO11 detector; the LiDAR
+data inside each detected box give its corroded area and metal loss.}
+\label{fig:framework}
+\end{figure}
+
+YOLO11 is chosen for three reasons. YOLO detectors are the most common family in
+the reviewed detection studies (Section~\ref{sec:lr-detection}) and in the
+box-based corrosion detectors reviewed \citep{Mao2026,Fu2024,Bui2026,Li2024b,Yu2023};
+a comparison of YOLOv3, SSD and Faster R-CNN on the same data found YOLOv3 the
+fastest with the best results overall \citep{Srivastava2021}, although the
+authors note that the best choice depends on the application; and as a
+single-stage detector it is fast enough to run on a drone's own computer
+\citep{Yu2023}. A YOLO detector has also been trained on RGB, depth and thermal images
+fused at the pixel level \citep{Cao2026}. Accepting the five-channel input
+requires only that the first convolutional layer be widened. Real-time
+deployment on the drone is not an objective of this research.
+
+\section{Project Activities}
+\label{sec:project-activities}
+
+The research proceeds through six activities, summarized in
+Table~\ref{tab:activities}. Activities 01 and 02 serve Objective~1, Activities 03
+and 04 serve Objective~2, and Activities 05 and 06 serve Objective~3.
+
+\begin{table}[htbp]
+\centering
+\caption{Project activities and the objectives they serve}
+\label{tab:activities}
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{@{}l>{\RaggedRight\arraybackslash}p{3.6cm}>{\RaggedRight\arraybackslash}Xc@{}}
+\toprule
+\textbf{No.} & \textbf{Activity} & \textbf{Main output} & \textbf{Objective} \\
+\midrule
+01 & Data acquisition & RGB, thermal and LiDAR data of corroded metal surfaces, captured from a UAV & 1 \\
+02 & Calibration and registration & The three sensors aligned in a common reference frame, with the residual error reported & 1 \\
+03 & Preprocessing and annotation & Bounding-box labels and a five-channel input format & 2 \\
+04 & Model development & A pretrained YOLO11 detector on the fused input, and per-box area and metal loss from the LiDAR & 2 \\
+05 & Ablation protocol & Single-sensor, paired and trimodal arms with a blank-channel control and a fixed decision rule & 3 \\
+06 & Evaluation & Detection results against the RGB-only baseline; measurement error against hand measurements & 3 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Activity 01: Data Acquisition}
+\label{sec:acquisition}
+
+No public dataset pairs registered RGB, thermal and LiDAR data of corroded metal
+(Section~\ref{sec:lr-corrosion-detection}). Acquisition is therefore an activity
+of this research rather than an input to it, and it is the largest single risk
+to the schedule.
+
+The sensors will be carried by an unmanned aerial vehicle (UAV). A UAV can carry
+the sensors to structures that are hazardous or slow to reach on foot
+\citep{Savino2025,Nooralishahi2022}, and manual inspection of confined
+structures is slow: one full inspection of the tanks of an offshore floating
+production, storage and offloading unit takes 10 to 15 days \citep{Soares2023}.
+The RGB and thermal cameras are already available; the LiDAR is still to be
+selected. The three sensors will be mounted rigidly on one frame so that their
+relative positions are calibrated once rather than for every capture, the
+arrangement used by \citet{Nooralishahi2022} for drone-based inspection of
+industrial components.
+
+Data will be collected first from controlled corrosion specimens, whose corroded
+areas and metal loss can be measured by hand, and then from field structures if
+access is secured. The amount of data needed for an initial study is modest:
+\citet{Lim2021} obtained a published RGB--thermal corrosion result from 36
+acquired images. Should field access not be secured within the schedule,
+evaluation will rely on the specimens alone, and the resulting limit on
+generalization will be reported, since models trained on data from a single
+source are known to generalize poorly \citep{Nash2022}.
+
+Two acquisition questions are settled in this activity because both affect
+whether the method transfers to field inspection.
+\begin{itemize}
+  \item \textbf{Thermal excitation.} The reviewed thermographic results on
+        corrosion were obtained under deliberate thermal excitation: halogen
+        lamps at a standoff of 1~m \citep{Lim2021}, a 1000~W quartz-tube heater
+        \citep{Elizalde2023} and a freezing spray \citep{Doshvarpassand2022}.
+        Whether passive thermal imaging from a UAV reveals the same corrosion is
+        not established. Where the specimens allow it, both regimes will be
+        recorded on the same specimens so that the difference is measured
+        rather than assumed.
+  \item \textbf{Timing.} Under active excitation, the thermal measurement is a
+        sequence that runs from the excitation until the surface returns to
+        ambient temperature \citep{Doshvarpassand2022}, whereas the RGB and LiDAR
+        captures are single frames. The acquisition protocol will therefore fix
+        which thermal frame is paired with the RGB and LiDAR captures.
+\end{itemize}
+
+\subsection{Activity 02: Calibration and Registration}
+\label{sec:registration}
+
+The three sensors differ in resolution and field of view, and they respond to
+different properties of the scene. A printed checkerboard, the usual target for
+camera and LiDAR calibration, has no thermal contrast and is invisible to a
+thermal camera. Two routes will therefore be tried. The first is a calibration
+target that all three sensors can see, such as the self-heating board of
+\citet{Nooralishahi2022}, which uses Peltier modules to produce a sharp pattern
+in both thermal and visible images. The second, if the target route fails, is
+targetless calibration of the thermal, RGB and LiDAR triple; \citet{Yang2024}
+report translation errors of 2.77~cm and 3.86~cm and rotation errors of
+0.21\textdegree\ and 0.46\textdegree\ for the LiDAR--RGB and LiDAR--thermal pairs
+respectively, and \citet{Tran2024} calibrate the same three sensors without
+targets while moving.
+
+After calibration, the LiDAR point cloud is projected onto the RGB image plane to
+form the depth image, and the thermal image is warped into the same view.
+Registration accuracy will be reported as a result of Objective~1, as the
+residual offset in pixels between corresponding features in the registered
+images. The preliminary results in Section~\ref{sec:preliminary-results} show
+why this matters: a thermal detector lost nearly a third of its accuracy when
+scored against boxes drawn on an RGB image that was only approximately aligned
+with it.
+
+\subsection{Activity 03: Preprocessing and Annotation}
+\label{sec:annotation}
+
+The detection target is a bounding box around each corroded region, with a
+single class. Boxes are used instead of pixel masks because building a
+pixel-level training set is labor-intensive and time-consuming \citep{Lim2021},
+and because mean average precision (mAP) on boxes is the metric reported by the
+detection and fusion literature, so the results can be set against published
+work. Pixel-level segmentation is outside the scope of this research.
+
+Each channel is normalized separately, because the RGB intensities, the thermal
+values and the LiDAR ranges have unrelated scales. Color augmentation that
+assumes natural-image statistics, such as hue and saturation shifts, is disabled
+in every configuration, because it is not meaningful for a thermal or depth
+channel and applying it to some arms and not others would bias the ablation.
+
+No extra labels are needed for the area and metal loss measurements. A box also
+covers clean metal, so the corroded pixels inside each box are separated with a
+rule-based color method, as in \citet{Alvani2026}, which combines the Lab
+$a^*$ channel, a red--green index and an HSV rust map and reached a mean IoU of
+0.742 against manually annotated masks, close to the 0.751 of a trained U-Net,
+without any pixel labels. A small number of areas will be measured by hand to
+state the error of this step.
+
+\subsection{Activity 04: Model Development}
+\label{sec:model}
+
+The detector is trained in three steps. It starts from YOLO11 weights pretrained
+on the COCO dataset, which teach general visual features and box placement. It
+is then fine-tuned on public RGB corrosion images, which teach the appearance of
+corrosion; these datasets are too small to train a detector on their own but are
+sufficient to adapt a pretrained one. Finally, the first convolutional layer is
+widened from three to five channels and the model is trained on the registered
+trimodal data: the RGB channels keep their pretrained weights, and the thermal
+and depth channels start from new weights.
+
+Transfer learning is used because the trimodal dataset will be small. On steel
+pipe pile corrosion, a network trained with pretrained weights converged faster
+and was significantly more accurate than the same network trained without them
+\citep{Han2024}; a multi-modal bridge deck study notes that training deep
+networks from scratch on a limited dataset poses a significant risk of
+overfitting \citep{Rashidi2026}; and the LiDAR--image early-fusion study of
+section loss used a pretrained network for the same reason \citep{Maru2025}.
+Pretraining on RGB images favours the RGB channels, so the comparison is tilted
+against fusion and any gain from thermal or LiDAR data is a conservative
+estimate. Training from scratch is the fallback if the widened model does not
+train well.
+
+The corroded area and metal loss of each detected region are measured from the
+LiDAR rather than learned. The range from the LiDAR to the surface converts the
+count of corroded pixels in a box into a physical area, and the depth readings
+inside the box, compared with the surrounding surface, give the metal loss. The
+smallest metal loss that can be measured is set by the precision of the chosen
+LiDAR, which will be established when the sensor is selected.
+
+\subsection{Activity 05: Ablation Protocol}
+\label{sec:ablation}
+
+The ablation is fixed in full before any corrosion result exists, so that the
+comparison to be reported cannot be chosen after the results are seen.
+
+\textbf{Configurations.} The detector is trained on each sensor alone (RGB,
+thermal, LiDAR depth), on RGB with thermal, on RGB with LiDAR depth, and on all
+three. The single-sensor arms show whether one sensor already suffices; the
+paired arms isolate what thermal and LiDAR each add to RGB.
+
+\textbf{Blank-channel control.} One further arm uses the fused input with the
+channel under test left empty. A fused input has more channels, and therefore
+more input capacity, than a single-sensor one; without this control, a gain due
+to the extra capacity would be credited to the sensor.
+
+\textbf{Held constant.} The architecture, pretrained starting weights, optimizer,
+learning-rate schedule, number of epochs, early-stopping rule, batch size, image
+size, augmentation and data split are identical in every arm. The data are split
+by specimen or structure rather than by image, so that frames of the same
+corroded region cannot appear in both the training and test sets.
+
+\textbf{Repeats.} Every arm is trained with three random seeds, and results are
+reported as the mean over seeds with the observed range.
+
+\textbf{Decision rule.} A sensor earns its place only if the arm containing it
+exceeds the best arm without it, on mean mAP@0.5:0.95, by more than the largest
+between-seed spread observed in any arm. Comparing the gain with the run-to-run
+variation of the experiment itself prevents a difference smaller than the noise
+from being reported as an effect. The literature supports both outcomes: an
+added sensor improved detection in some studies and not in others
+(Section~\ref{sec:lr-fusion}), which is why the question is tested rather than
+assumed.
+
+\subsection{Activity 06: Evaluation}
+\label{sec:evaluation}
+
+Every configuration is compared with the RGB-only arm, which is the baseline a
+fused detector must beat to be worth its cost. Detection is evaluated with
+precision, recall, mAP@0.5 and mAP@0.5:0.95. Both mAP thresholds are reported
+because thermal and LiDAR data may improve where a box is placed more than
+whether a region is found at all: mAP@0.5 counts a box as correct at half
+overlap with the label, whereas mAP@0.5:0.95 averages over stricter overlaps and
+rewards boxes that fit the corrosion closely. The closest published RGB--thermal
+corrosion result \citep{Lim2021} serves as an external reference, with the
+differences in structure, detector and thermal excitation stated.
+
+The corroded area and metal loss measured from the LiDAR are compared with hand
+measurements on a subset of regions, and their errors are reported in physical
+units.
+
+\section{Objectives and Key Milestones}
+\label{sec:milestones}
+
+Table~\ref{tab:milestones} links each objective to its activities and to the
+milestone that marks its completion.
+
+\begin{table}[htbp]
+\centering
+\caption{Objectives, activities and key milestones}
+\label{tab:milestones}
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{@{}>{\RaggedRight\arraybackslash}p{3.4cm}c>{\RaggedRight\arraybackslash}Xl@{}}
+\toprule
+\textbf{Objective} & \textbf{Activities} & \textbf{Milestone} & \textbf{Target} \\
+\midrule
+1. Registration and preprocessing & 01, 02 & Registered RGB--thermal--LiDAR dataset ready & Jul 2027 \\
+2. Detection and measurement & 03, 04 & Fused detection model finalized & Nov 2027 \\
+3. Modality ablation & 05, 06 & Ablation and evaluation complete & Mar 2028 \\
+\midrule
+-- & -- & Review paper submitted & Feb 2027 \\
+-- & -- & Thesis submission and viva & Apr 2028 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Study Plan}
+\label{sec:study-plan}
+
+The research runs over six semesters, from May 2026 to April 2028, in six
+phases (Figure~\ref{fig:gantt}). The phases overlap by design: the tools are
+learned while data acquisition begins, and model development starts before the
+dataset is complete. This proposal defence takes place in October 2026, in the
+second semester.
+
+\definecolor{gLit}{HTML}{4E79A7}
+\definecolor{gProp}{HTML}{3D8C86}
+\definecolor{gProg}{HTML}{B07AA1}
+\definecolor{gData}{HTML}{59A14F}
+\definecolor{gModel}{HTML}{F28E2B}
+\definecolor{gThesis}{HTML}{9C755F}
+\definecolor{gMile}{HTML}{C0392B}
+
+\begin{landscape}
+\begin{figure}[p]
+\centering
+\begin{ganttchart}[
+  hgrid, vgrid,
+  x unit=0.66cm,
+  y unit title=0.55cm,
+  y unit chart=0.62cm,
+  title height=1,
+  bar height=0.55,
+  milestone height=0.55,
+  bar/.append style={draw=black!55,thin},
+  milestone/.append style={fill=gMile,draw=black!60},
+  title label font=\footnotesize,
+  bar label font=\small,
+  milestone label font=\small\itshape,
+  title/.append style={fill=black!8},
+  bar label node/.append style={align=left,text width=6.6cm},
+  milestone label node/.append style={align=left,text width=6.6cm}
+]{1}{24}
+\gantttitle{Year 1}{12}
+\gantttitle{Year 2}{12} \\
+\gantttitle{Semester 1}{4}
+\gantttitle{Semester 2}{4}
+\gantttitle{Semester 3}{4}
+\gantttitle{Semester 4}{4}
+\gantttitle{Semester 5}{4}
+\gantttitle{Semester 6}{4} \\
+\gantttitle{M}{1} \gantttitle{J}{1} \gantttitle{J}{1} \gantttitle{A}{1} \gantttitle{S}{1} \gantttitle{O}{1} \gantttitle{N}{1} \gantttitle{D}{1} \gantttitle{J}{1} \gantttitle{F}{1} \gantttitle{M}{1} \gantttitle{A}{1} \gantttitle{M}{1} \gantttitle{J}{1} \gantttitle{J}{1} \gantttitle{A}{1} \gantttitle{S}{1} \gantttitle{O}{1} \gantttitle{N}{1} \gantttitle{D}{1} \gantttitle{J}{1} \gantttitle{F}{1} \gantttitle{M}{1} \gantttitle{A}{1} \\
+\ganttbar[bar/.append style={fill=gLit}]{1. Literature review}{1}{10} \\
+\ganttmilestone{Review paper submitted (Feb 2027)}{10} \\
+\ganttbar[bar/.append style={fill=gProp}]{2. Proposal}{3}{6} \\
+\ganttmilestone{Proposal defence (Oct 2026)}{6} \\
+\ganttbar[bar/.append style={fill=gProg}]{3. Tools and coding}{2}{12} \\
+\ganttbar[bar/.append style={fill=gData}]{4. Data pipeline}{6}{16} \\
+\ganttmilestone{Dataset ready (Jul 2027)}{15} \\
+\ganttbar[bar/.append style={fill=gModel}]{5. Model and validation}{13}{23} \\
+\ganttmilestone{Model finalized (Nov 2027)}{19} \\
+\ganttbar[bar/.append style={fill=gThesis}]{6. Thesis and journal}{17}{24} \\
+\ganttmilestone{Thesis submission and viva (Apr 2028)}{24}
+\end{ganttchart}
+\caption{Study plan, May 2026 to April 2028. Each bar is one phase from start to
+finish; diamonds mark the key milestones.}
+\label{fig:gantt}
+\end{figure}
+\end{landscape}
+
+\section{Preliminary Results}
+\label{sec:preliminary-results}
+
+Because no public dataset pairs RGB, thermal and LiDAR data of corrosion, the
+detection and fusion pipeline was tested on a public trimodal dataset from
+another domain. The aim was to show that the pipeline and the ablation protocol
+run end to end and produce an interpretable verdict, not to obtain a corrosion
+result.
+
+\subsection{Dataset and Setup}
+
+MID-1K \citep{Mota2024} is a person-detection dataset recorded from a Clearpath
+Jackal ground robot carrying an RGB camera (Ximea), a thermal camera (FLIR Boson
+640) and a 64-beam LiDAR (Ouster OS1-64), with the LiDAR projected onto the RGB
+image plane as a depth image. It contains 1,100 frames with one class, person.
+The authors' 397 test frames (1,629 labelled people) were kept as the test set,
+and the remaining frames were split into 591 training and 112 validation frames,
+with the validation frames held out as whole recording sessions.
+
+Every arm used the same detector (YOLO11n, pretrained on COCO), the same split
+and the same training recipe: 100 epochs with early stopping after 20 epochs
+without improvement, 640-pixel images, a batch size of 16, and hue and
+saturation augmentation disabled. Each arm was trained with three seeds. Because
+the pretrained detector expects three input channels, the fused arm stacked a
+grayscale version of the RGB image with the thermal and depth images, so that
+all three sensors fit; the five-channel input of the proposed framework is not
+needed for this test. Table~\ref{tab:prelim-arms} lists the six arms.
+
+\begin{table}[htbp]
+\centering
+\caption{Input configurations in the preliminary test}
+\label{tab:prelim-arms}
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{@{}l>{\RaggedRight\arraybackslash}p{4.2cm}>{\RaggedRight\arraybackslash}X@{}}
+\toprule
+\textbf{Arm} & \textbf{Input channels} & \textbf{Scored against} \\
+\midrule
+RGB & R, G, B & RGB labels \\
+Thermal & T, T, T & Thermal labels, drawn on the thermal image \\
+Depth & D, D, D & RGB labels \\
+Early fusion & Gray, T, D & RGB labels \\
+Blank control & Gray, T, empty & RGB labels \\
+Thermal on RGB boxes & T, T, T & RGB labels (misalignment test) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Results}
+
+Table~\ref{tab:prelim-results} gives the test results.
+
+\begin{table}[htbp]
+\centering
+\caption{Preliminary test results on MID-1K (397 test frames). Values are the
+mean over three seeds, with the range in brackets.}
+\label{tab:prelim-results}
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Arm} & \textbf{mAP@0.5} & \textbf{mAP@0.5:0.95} \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{Scored against RGB labels}} \\
+Early fusion (gray + thermal + depth) & 0.596 [0.575--0.608] & 0.324 [0.318--0.328] \\
+Blank control (gray + thermal + empty) & 0.598 [0.590--0.605] & 0.324 [0.320--0.332] \\
+RGB & 0.572 [0.570--0.575] & 0.311 [0.310--0.313] \\
+Thermal on RGB boxes & 0.521 [0.487--0.569] & 0.244 [0.218--0.271] \\
+Depth & 0.374 [0.344--0.413] & 0.164 [0.139--0.188] \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{Scored against thermal labels}} \\
+Thermal & 0.756 [0.752--0.763] & 0.467 [0.464--0.471] \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Early fusion did not satisfy the decision rule. On mAP@0.5:0.95 it reached 0.324
+against 0.311 for RGB, a gain of 0.013, while the largest between-seed spread in
+any arm was about 0.05. Fusion also scored the same as the blank control, in
+which the depth channel was empty, so the LiDAR depth added nothing beyond the
+grayscale and thermal channels in this setup. Depth on its own was the weakest
+arm.
+
+The thermal images scored 0.756 mAP@0.5 against labels drawn on the thermal
+image but 0.521 against the RGB labels, a loss of nearly a third. MID-1K's
+thermal camera is only approximately registered to the RGB view. Matching each
+RGB label box to the nearest thermal label box gives a median distance of about
+5 pixels between box centers, with 90\% of pairs within 13 pixels; this was
+measured from the dataset's annotations and includes differences in how the two
+label sets were drawn as well as camera misalignment. The fused input is scored
+against the RGB labels, so its thermal channel partly points at the wrong place,
+which is a likely reason fusion could not exploit the thermal data.
+
+Every arm also scored much higher on the validation set than on the test set,
+which reflects the change of scene between the held-out validation sessions and
+the authors' test sessions.
+
+\subsection{What the Preliminary Results Establish}
+
+Three lessons carry over to the corrosion study. First, the pipeline runs end to
+end: six arms and three seeds were trained and scored with one recipe, and
+reruns with the same seed reproduced the same results. Second, the blank-channel
+control works: it detected a sensor that added nothing, and the same check will
+test whether thermal and LiDAR earn their place on corrosion. Third,
+registration has to come first: loose alignment cost thermal nearly a third of
+its score on the RGB boxes, which is why calibration and registration form
+Objective~1 and Activity~02.
+
+The test does not establish anything about corrosion. The target class is people,
+the detector is the smallest YOLO11 model, and the COCO-pretrained weights, which
+include a person class, favour the RGB input. Its value is in showing that the
+protocol is ready for the trimodal corrosion data.

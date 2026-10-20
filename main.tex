@@ -12,7 +12,20 @@
 \pagenumbering{roman}
 \input{frontmatter/cover}
 
+\input{frontmatter/abstract}
+\clearpage
+
 \tableofcontents
+\clearpage
+
+\phantomsection
+\addcontentsline{toc}{chapter}{LIST OF FIGURES}
+\listoffigures
+\clearpage
+
+\phantomsection
+\addcontentsline{toc}{chapter}{LIST OF TABLES}
+\listoftables
 \clearpage
 
 % ---- Body (arabic numerals, restarting at 1) ----
@@ -21,6 +34,7 @@
 \include{chapters/01_introduction}
 \include{chapters/02_literature_review}
 \include{chapters/03_methodology}
+\include{chapters/04_conclusion}
 \include{chapters/04_references}
 
 \end{document}

@@ -1,0 +1,43 @@
+% ---------------------------------------------------------------
+% Abstract -- one paragraph, italicised, followed by keywords.
+% ---------------------------------------------------------------
+\chapter*{Abstract}
+\cftaddtitleline{toc}{chapter}{ABSTRACT}{\thepage}
+
+\emph{Corrosion is a persistent threat to steel structures in the oil and
+gas, marine and civil sectors, and whether a corroded component remains fit
+for service depends on how deep the metal loss goes as well as how much area
+it covers. Camera-based deep learning has made contactless corrosion
+detection practical, but a color camera records appearance only: it can
+confuse stains, coatings and shadows with corrosion, it cannot see beneath
+intact paint, and it reports severity as affected area rather than loss of
+material. Thermal imaging responds to defects below the surface and LiDAR
+measures surface geometry, yet of the 33 corrosion-sensing studies reviewed in
+this proposal, 16 rely on RGB images alone, only one combines a camera with
+thermal imaging, and none fuses RGB, thermal and LiDAR data. The aim of this
+study is to develop and evaluate a machine learning framework that detects
+corroded regions on metal surfaces by fusing RGB, thermal and LiDAR data,
+measures the corroded area and metal loss of each region from the LiDAR, and
+determines what each sensor contributes to detection. A registration pipeline
+will first align the three sensors, carried on an unmanned aerial vehicle,
+into a common reference frame. The registered images will be stacked into a
+single five-channel input to a YOLO11 detector, pretrained on general and
+corrosion images, that places bounding boxes around corroded regions. An
+ablation study will then compare each sensor alone, RGB--thermal, RGB--LiDAR
+and the full combination, together with a blank-channel control, under
+identical training conditions and a decision rule fixed in advance. A
+preliminary test of this pipeline on MID-1K, a public RGB--thermal--LiDAR
+person-detection dataset, ran end to end across six input configurations and
+three random seeds. Early fusion reached a mean test mAP@0.5 of 0.596 against
+0.572 for RGB alone, a gain too small to satisfy the decision rule, while the
+same thermal images fell from 0.756 to 0.521 when scored against
+RGB-aligned labels, confirming that pixel-level registration must precede
+fusion. The expected contributions are a registered RGB--thermal--LiDAR
+corrosion dataset and a controlled measure of which sensors are worth
+deploying for corrosion detection.}
+
+\vspace{0.8\baselineskip}
+
+\noindent\textbf{Keywords:} \emph{Corrosion detection; multimodal sensor
+fusion; early fusion; object detection; YOLO; thermal imaging; LiDAR; ablation
+study.}

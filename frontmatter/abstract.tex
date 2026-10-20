@@ -1,0 +1,34 @@
+% ---------------------------------------------------------------
+% Abstract -- one paragraph, italicised, followed by keywords.
+% ---------------------------------------------------------------
+\chapter*{Abstract}
+\cftaddtitleline{toc}{chapter}{ABSTRACT}{\thepage}
+
+\emph{Whether a corroded steel component remains fit for service depends on
+how deep the metal loss goes as well as how much area it covers. Camera-based
+deep learning detects corrosion without contact, but a color camera records
+appearance only: it confuses stains, coatings and shadows with corrosion, cannot
+see beneath paint, and reports severity as area. Thermal imaging responds to
+defects below the surface and LiDAR measures geometry, yet of the 33
+corrosion-sensing studies reviewed, 16 rely on RGB alone, one adds thermal
+imaging and none fuses RGB, thermal and LiDAR data. This study aims to develop and
+evaluate a framework that detects corroded regions by fusing the three sensors,
+measures each region's area and metal loss from the LiDAR, and determines what
+each sensor contributes. The sensors, carried on an unmanned aerial vehicle, will
+be registered to a common frame and stacked into one five-channel input to a
+pretrained YOLO11 detector. An ablation will compare single, paired and full
+configurations, with a blank-channel control, under identical conditions and a
+decision rule fixed in advance. A preliminary test on MID-1K, a public
+RGB--thermal--LiDAR person-detection dataset, ran end to end across six
+configurations and three seeds. Early fusion reached a test mAP@0.5:0.95 of 0.324
+against 0.311 for RGB, within the seed spread and so short of the decision rule,
+and thermal fell from 0.756 to 0.521 mAP@0.5 when scored against RGB-aligned
+labels, suggesting that registration must precede fusion. The expected
+contributions are a registered trimodal corrosion dataset and a controlled
+measure of which sensors are worth deploying.}
+
+\vspace{0.8\baselineskip}
+
+\noindent\textbf{Keywords:} \emph{Corrosion detection; multimodal sensor
+fusion; early fusion; object detection; YOLO; thermal imaging; LiDAR; ablation
+study.}

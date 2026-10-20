@@ -33,6 +33,12 @@
 \usepackage{longtable}
 \usepackage{multirow}
 \usepackage{tabularx}
+\IfFileExists{pgfgantt.sty}{\usepackage{pgfgantt}}{}
+\IfFileExists{pdflscape.sty}{\usepackage{pdflscape}}{}
+\IfFileExists{xltabular.sty}{%
+  \usepackage{xltabular}%
+  \newcommand{\LongTablesAvailable}{}%
+}{}
 \usepackage{rotating}
 \usepackage[font=normalsize,labelfont=bf,justification=centering]{caption}
 \usepackage{subcaption}
@@ -40,13 +46,25 @@
 % ---- Diagrams ----------------------------------------------------
 \usepackage{tikz}
 \usetikzlibrary{positioning,arrows.meta,shapes.geometric,calc}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.16}
+\definecolor{chartBlue}{HTML}{2E6FA3}
+\definecolor{chartOrange}{HTML}{E08A1E}
+\definecolor{chartGray}{HTML}{9AA5B1}
 
 % ---- Maths --------------------------------------------------------
 \usepackage{amsmath}
 \usepackage{amssymb}
-% siunitx gives \SI{50}{\micro\metre} style units. Uncomment on a full
-% TeX Live / MiKTeX install (MiKTeX fetches it automatically).
-%\usepackage{siunitx}
+% siunitx provides \si{\micro\metre} and similar unit macros. Guarded so the
+% document still builds where the package is unavailable.
+\IfFileExists{siunitx.sty}{%
+  \usepackage{siunitx}%
+}{%
+  \providecommand{\micro}{\ensuremath{\mu}}%
+  \providecommand{\metre}{m}%
+  \providecommand{\degreeCelsius}{\ensuremath{^\circ}\kern-0.5pt C}%
+  \providecommand{\si}[1]{\ensuremath{##1}}%
+}
 
 % ---- Lists --------------------------------------------------------
 \usepackage{enumitem}
@@ -63,6 +81,15 @@
   {12pt}
   {\MakeUppercase}
 \titlespacing*{\chapter}{0pt}{0pt}{24pt}
+
+% Unnumbered chapters (ABSTRACT, REFERENCES): centred caps, no
+% "CHAPTER n" line above them.
+\titleformat{name=\chapter,numberless}[display]
+  {\normalfont\bfseries\centering}
+  {}
+  {0pt}
+  {\MakeUppercase}
+\titlespacing*{name=\chapter,numberless}{0pt}{0pt}{24pt}
 
 \titleformat{\section}
   {\normalfont\bfseries}{\thesection}{1em}{}
@@ -89,6 +116,13 @@
 % TOC chapter lines read "CHAPTER 1   INTRODUCTION", as the template does.
 \renewcommand{\cftchappresnum}{CHAPTER\space}
 \setlength{\cftchapnumwidth}{2.7cm}
+% List of figures and list of tables, titled like the table of contents.
+\AtBeginDocument{\renewcommand{\listfigurename}{LIST OF FIGURES}%
+  \renewcommand{\listtablename}{LIST OF TABLES}}
+\renewcommand{\cftloftitlefont}{\hfill\normalfont\bfseries}
+\renewcommand{\cftafterloftitle}{\hfill}
+\renewcommand{\cftlottitlefont}{\hfill\normalfont\bfseries}
+\renewcommand{\cftafterlottitle}{\hfill}
 
 % ---- Page numbering in the footer --------------------------------
 \usepackage{fancyhdr}
@@ -106,8 +140,8 @@
 % natbib + bibtex. Numeric, in order of citation (unsrtnat).
 % For author-year instead: swap to plainnat and drop the [numbers] option.
 \usepackage[numbers,sort&compress]{natbib}
-% Chapter 4 is "REFERENCES" as a numbered chapter (a UTP quirk), so the
-% bibliography itself must not print its own heading.
+% REFERENCES is its own unnumbered chapter, not Chapter 4, so the
+% bibliography must not print its own heading.
 \renewcommand{\bibsection}{}
 \setlength{\bibsep}{6pt}
 

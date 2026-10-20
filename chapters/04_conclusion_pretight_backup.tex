@@ -1,0 +1,31 @@
+\chapter[CONCLUSION]{Conclusion}
+\label{ch:conclusion}
+
+This proposal sets out a contactless framework that detects corrosion on metal
+surfaces by fusing RGB, thermal and LiDAR data, and measures the corroded area
+and metal loss of each detected region from the LiDAR.
+
+The case for the work rests on the limits of a single camera. Fitness for
+service depends on how deep the metal loss goes as well as how much area it
+covers, yet a camera records appearance only. The review in
+Chapter~\ref{ch:literature-review} found that, of 33 corrosion-sensing studies,
+16 rely on RGB images alone, only one adds thermal imaging, and none fuses RGB,
+thermal and LiDAR data; nor has any study measured what each of these sensors
+contributes to corrosion detection under controlled conditions.
+
+The three objectives address this gap: a pipeline that registers the three
+sensors into a common reference frame; an early-fusion YOLO11 detector with the
+corroded area and metal loss of each region measured from the LiDAR; and an
+ablation, with a blank-channel control and a decision rule fixed in advance,
+that measures what each sensor adds. A preliminary test on the public MID-1K
+dataset showed that the pipeline and the protocol run end to end. Early fusion
+did not clear the decision rule, and loose RGB--thermal alignment cost the
+thermal images nearly a third of their score, which suggests that registration
+must come first.
+
+The expected contributions are a registered RGB--thermal--LiDAR corrosion
+dataset, to be released if the owners of the scanned structures permit, and a
+controlled measure of which sensors are worth deploying for corrosion detection.
+The main risk is data acquisition; if field access is not secured in time, the
+work will be evaluated on controlled corrosion specimens and the resulting limit
+on generalization will be reported.

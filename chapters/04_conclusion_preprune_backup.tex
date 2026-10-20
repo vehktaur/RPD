@@ -1,0 +1,42 @@
+\chapter[CONCLUSION]{Conclusion}
+\label{ch:conclusion}
+
+This proposal sets out a contactless framework for detecting corrosion on metal
+surfaces by fusing RGB, thermal and LiDAR data, and for measuring the corroded
+area and metal loss of each detected region from the LiDAR.
+
+The case for the work rests on the limits of a single camera. Whether a corroded
+component remains fit for service depends on how deep the metal loss goes as
+well as how much area it covers, yet camera-based detection records appearance
+only: it confuses stains, coatings and shadows with corrosion, cannot see
+beneath intact paint, and reports severity as affected area. Thermal imaging
+responds to defects below the surface and LiDAR measures surface geometry, but
+the review in Chapter~\ref{ch:literature-review} found that, of 33
+corrosion-sensing studies, 16 rely on RGB images alone, only one combines a
+camera with thermal imaging, and none fuses RGB, thermal and LiDAR data. Nor has
+any study measured what each of these sensors contributes to corrosion
+detection under controlled conditions.
+
+The research addresses this gap through three objectives: a pipeline that
+registers the three sensors into a common reference frame; an early-fusion YOLO11
+detector that localizes corroded regions in the registered five-channel data,
+with the corroded area and metal loss of each region measured from the LiDAR;
+and an ablation that compares each sensor alone, RGB with thermal, RGB with LiDAR
+and all three, together with a blank-channel control, under identical conditions
+and a decision rule fixed in advance.
+
+A preliminary test on the public MID-1K dataset showed that the pipeline and the
+ablation protocol run end to end. Early fusion reached a mean test mAP@0.5 of
+0.596 against 0.572 for RGB alone, a gain too small to satisfy the decision
+rule, and it matched the blank-channel control, so the depth channel added
+nothing in that setup. The same thermal images fell from 0.756 to 0.521 mAP@0.5
+when scored against RGB-aligned labels, which confirms that pixel-level
+registration must precede fusion.
+
+The expected contributions are a registered RGB--thermal--LiDAR corrosion
+dataset, to be released if the owners of the scanned structures permit, and a
+controlled measure of what each sensor contributes to corrosion detection,
+including the case in which a sensor is not worth its cost. The main risk is
+data acquisition; if field access is not secured within the schedule, the work
+will be evaluated on controlled corrosion specimens and the resulting limit on
+generalization will be reported.

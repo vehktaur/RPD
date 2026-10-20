@@ -1,12 +1,10 @@
-\chapter[REFERENCES]{References}
+\chapter*{References}
 \label{ch:references}
+\cftaddtitleline{toc}{chapter}{REFERENCES}{\thepage}
+% REFERENCES is unnumbered and stands outside the chapter sequence.
 % The bibliography prints without its own heading -- see the
-% \bibsection redefinition in preamble.tex -- so that it sits under
-% the "CHAPTER 4 / REFERENCES" heading above, as the template shows.
-
-% Remove the next line once real citations exist in the text.
-\nocite{placeholder2026}
+% \bibsection redefinition in preamble.tex.
 
 \singlespacing
 \bibliographystyle{unsrtnat}
-\bibliography{references}
+\bibliography{references,references_extra}
